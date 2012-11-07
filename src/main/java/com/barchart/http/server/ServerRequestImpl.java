@@ -23,38 +23,42 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.barchart.http.api.RequestAttribute;
+import com.barchart.http.api.RequestAttributeKey;
 import com.barchart.http.api.ServerRequest;
 
-public class ServerRequestImpl implements ServerRequest {
+class ServerRequestImpl implements ServerRequest {
 
-	private final HttpRequest nettyRequest;
+	private HttpRequest nettyRequest;
 
-	private final String pathInfo;
-	private final String queryString;
+	private String pathInfo;
+	private String queryString;
 
 	private Map<String, List<String>> queryStringDecoded = null;
 	private Map<String, Cookie> cookies;
 
+	private Map<RequestAttributeKey<?>, RequestAttribute<?>> attributes;
+
 	private String remoteUser = null;
 
-	ServerRequestImpl(final HttpRequest nettyRequest_, final String requestPath_) {
+	ServerRequestImpl() {
+	}
+
+	void init(final HttpRequest nettyRequest_, final String relativeUri_) {
 
 		nettyRequest = nettyRequest_;
 
-		String relativeUri = nettyRequest.getUri();
-		if (relativeUri.startsWith(requestPath_)) {
-			relativeUri = relativeUri.substring(0, requestPath_.length());
-		}
-
-		final int q = relativeUri.indexOf('?');
+		final int q = relativeUri_.indexOf('?');
 
 		if (q == -1) {
-			pathInfo = relativeUri;
+			pathInfo = relativeUri_;
 			queryString = null;
 		} else {
-			pathInfo = relativeUri.substring(0, q);
-			queryString = relativeUri.substring(q + 1);
+			pathInfo = relativeUri_.substring(0, q);
+			queryString = relativeUri_.substring(q + 1);
 		}
+
+		// TODO check user authentication
 
 	}
 
@@ -298,6 +302,26 @@ public class ServerRequestImpl implements ServerRequest {
 	@Override
 	public void setDecoderResult(final DecoderResult result) {
 		nettyRequest.setDecoderResult(result);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public synchronized <T> RequestAttribute<T> attr(
+			final RequestAttributeKey<T> key) {
+
+		if (attributes == null) {
+			attributes =
+					new HashMap<RequestAttributeKey<?>, RequestAttribute<?>>(2);
+		}
+
+		RequestAttribute<T> attr = (RequestAttribute<T>) attributes.get(key);
+		if (attr == null) {
+			attr = new RequestAttribute<T>();
+			attributes.put(key, attr);
+		}
+
+		return attr;
+
 	}
 
 }

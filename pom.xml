@@ -36,6 +36,20 @@
 			<scope>provided</scope>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.2</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.barchart.util</groupId>
+			<version>2.0.9</version>
+			<artifactId>barchart-util-thread</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- logging framework -->
 		<dependency>
 			<groupId>org.slf4j</groupId>

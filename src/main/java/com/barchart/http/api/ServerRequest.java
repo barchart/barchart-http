@@ -43,4 +43,8 @@ public interface ServerRequest extends HttpRequest {
 
 	public BufferedReader getReader();
 
+	/* Arbitrary attributes */
+
+	public <T> RequestAttribute<T> attr(RequestAttributeKey<T> key);
+
 }
