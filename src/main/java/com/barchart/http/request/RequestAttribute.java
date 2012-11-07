@@ -1,4 +1,4 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 /**
  * An arbitrarily-valued attribute for storing in a ServerRequest object.

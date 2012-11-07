@@ -1,4 +1,4 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 /**
  * Factory for creating RequestHandler instances, which allows more control over

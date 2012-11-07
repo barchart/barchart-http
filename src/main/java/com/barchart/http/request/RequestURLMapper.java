@@ -1,10 +1,10 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 public interface RequestURLMapper {
 
 	/**
 	 * Find the correct request handler for the given request URI.
 	 */
-	public HandlerURIMapping getHandlerFor(String uri);
+	public RequestHandlerMapping getHandlerFor(String uri);
 
 }

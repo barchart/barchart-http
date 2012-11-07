@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.barchart.http.api.RequestAttribute;
-import com.barchart.http.api.RequestAttributeKey;
-import com.barchart.http.api.ServerRequest;
+import com.barchart.http.request.RequestAttribute;
+import com.barchart.http.request.RequestAttributeKey;
+import com.barchart.http.request.ServerRequest;
 
 class ServerRequestImpl implements ServerRequest {
 

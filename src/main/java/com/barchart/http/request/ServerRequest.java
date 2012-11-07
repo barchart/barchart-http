@@ -1,4 +1,4 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpRequest;

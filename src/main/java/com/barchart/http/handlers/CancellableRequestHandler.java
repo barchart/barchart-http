@@ -1,13 +1,13 @@
-package com.barchart.http.server;
+package com.barchart.http.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import com.barchart.http.api.RequestAttribute;
-import com.barchart.http.api.RequestAttributeKey;
-import com.barchart.http.api.ServerRequest;
-import com.barchart.http.api.ServerResponse;
+import com.barchart.http.request.RequestAttribute;
+import com.barchart.http.request.RequestAttributeKey;
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 
 /**
  * Base class for stateless request handlers that want to register Futures that

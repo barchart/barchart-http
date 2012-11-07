@@ -1,8 +1,8 @@
-package com.barchart.http.server;
+package com.barchart.http.handlers;
 
-import com.barchart.http.api.RequestHandler;
-import com.barchart.http.api.ServerRequest;
-import com.barchart.http.api.ServerResponse;
+import com.barchart.http.request.RequestHandler;
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 
 /**
  * Base request handler that provides default implementations of some less-used

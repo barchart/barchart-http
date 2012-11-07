@@ -1,4 +1,4 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 import java.io.IOException;
 

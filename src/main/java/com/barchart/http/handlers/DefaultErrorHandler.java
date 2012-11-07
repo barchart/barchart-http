@@ -1,13 +1,13 @@
-package com.barchart.http.server;
+package com.barchart.http.handlers;
 
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.barchart.http.api.ErrorHandler;
-import com.barchart.http.api.ServerRequest;
-import com.barchart.http.api.ServerResponse;
+import com.barchart.http.request.ErrorHandler;
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 
 /**
  * Very basic default error handler.

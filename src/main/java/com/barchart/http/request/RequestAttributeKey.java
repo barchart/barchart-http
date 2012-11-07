@@ -1,4 +1,4 @@
-package com.barchart.http.api;
+package com.barchart.http.request;
 
 /**
  * Key for storing and retrieving request attributes.

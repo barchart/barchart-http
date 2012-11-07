@@ -9,10 +9,8 @@ import io.netty.util.AttributeKey;
 
 import java.io.IOException;
 
-import com.barchart.http.api.ErrorHandler;
-import com.barchart.http.api.HandlerURIMapping;
-import com.barchart.http.api.RequestHandler;
-import com.barchart.http.api.RequestURLMapper;
+import com.barchart.http.request.RequestHandler;
+import com.barchart.http.request.RequestHandlerMapping;
 
 /**
  * Netty channel handler for routing inbound requests to the proper
@@ -25,17 +23,10 @@ public class HttpRequestChannelHandler extends
 	private static final AttributeKey<ServerResponseImpl> ATTR_RESPONSE =
 			new AttributeKey<ServerResponseImpl>("response");
 
-	private final RequestURLMapper mapper;
-	private final ErrorHandler errorHandler;
+	private final HttpServerConfig config;
 
-	public HttpRequestChannelHandler(final RequestURLMapper mapper_) {
-		this(mapper_, new DefaultErrorHandler());
-	}
-
-	public HttpRequestChannelHandler(final RequestURLMapper mapper_,
-			final ErrorHandler errorHandler_) {
-		mapper = mapper_;
-		errorHandler = errorHandler_;
+	public HttpRequestChannelHandler(final HttpServerConfig config_) {
+		config = config_;
 	}
 
 	@Override
@@ -43,7 +34,8 @@ public class HttpRequestChannelHandler extends
 			final HttpRequest msg) throws Exception {
 
 		// Create request handler
-		final HandlerURIMapping mapping = mapper.getHandlerFor(msg.getUri());
+		final RequestHandlerMapping mapping =
+				config.getRequestMapping(msg.getUri());
 
 		if (mapping == null) {
 			handleError(ctx, msg, HttpResponseStatus.NOT_FOUND, null);
@@ -74,7 +66,7 @@ public class HttpRequestChannelHandler extends
 			response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 
 			try {
-				errorHandler.onError(request, response, e);
+				config.errorHandler().onError(request, response, e);
 			} catch (final Exception e2) {
 				response.write(e.getClass()
 						+ " was thrown while processing this request.  Additionally, "
@@ -108,12 +100,23 @@ public class HttpRequestChannelHandler extends
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
 
-		// Process request
-		errorHandler.onError(request, response, exception);
+		try {
 
-		// If handler did not request async response, finish request
-		if (!response.isFinished() && !response.isSuspended()) {
-			response.finish();
+			// Process request
+			config.errorHandler().onError(request, response, exception);
+
+		} catch (final Exception e) {
+
+			response.write("The requested URL was not found.  Additionally, "
+					+ e.getClass() + " was thrown while handling this error.");
+
+		} finally {
+
+			// If handler did not request async response, finish request
+			if (!response.isFinished() && !response.isSuspended()) {
+				response.finish();
+			}
+
 		}
 
 	}

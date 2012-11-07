@@ -29,9 +29,9 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.barchart.http.api.RequestHandler;
-import com.barchart.http.api.ServerRequest;
-import com.barchart.http.api.ServerResponse;
+import com.barchart.http.request.RequestHandler;
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 
 /**
  * Not thread safe.
@@ -237,8 +237,6 @@ class ServerResponseImpl extends DefaultHttpResponse implements ServerResponse {
 
 		try {
 
-			suspended = false;
-
 			ChannelFuture writeFuture;
 
 			final HttpTransferEncoding te = getTransferEncoding();
@@ -258,7 +256,10 @@ class ServerResponseImpl extends DefaultHttpResponse implements ServerResponse {
 
 			}
 
+			// Mark finished before resetting suspended to avoid synchronization
+			// issue with channel handler auto-finish logic
 			finished = true;
+			suspended = false;
 
 			if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
 				writeFuture.addListener(ChannelFutureListener.CLOSE);
