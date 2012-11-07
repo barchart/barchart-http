@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>com.barchart.util</groupId>
 			<version>2.0.10</version>
-			<artifactId>barchart-util-thread</artifactId>
+			<artifactId>barchart-util-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 

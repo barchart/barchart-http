@@ -33,7 +33,7 @@ import org.junit.Test;
 import com.barchart.http.handlers.CancellableRequestHandler;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
-import com.barchart.util.thread.test.CallableTest;
+import com.barchart.util.test.CallableTest;
 
 public class TestHttpServer {
 
