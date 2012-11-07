@@ -162,6 +162,10 @@ public class HttpServerConfig {
 
 	}
 
+	public Object removeRequestHandler(final String path) {
+		return handlers.remove(path);
+	}
+
 	/**
 	 * Get the authorization handler for the specified header.
 	 */

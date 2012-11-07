@@ -115,6 +115,10 @@ public class HttpServer {
 		return serverChannel != null;
 	}
 
+	public HttpServerConfig config() {
+		return config;
+	}
+
 	private class HttpServerChannelInitializer extends
 			ChannelInitializer<SocketChannel> {
 

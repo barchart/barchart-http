@@ -26,6 +26,7 @@ public class HttpRequestChannelHandler extends
 	private final HttpServerConfig config;
 
 	public HttpRequestChannelHandler(final HttpServerConfig config_) {
+		super(HttpRequest.class);
 		config = config_;
 	}
 
