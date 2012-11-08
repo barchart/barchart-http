@@ -16,6 +16,11 @@ public abstract class RequestHandlerBase implements RequestHandler {
 	}
 
 	@Override
+	public void onException(final ServerRequest request,
+			final ServerResponse response, final Throwable exception) {
+	}
+
+	@Override
 	public void onComplete(final ServerRequest request,
 			final ServerResponse response) {
 	}

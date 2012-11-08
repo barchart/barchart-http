@@ -14,6 +14,13 @@ public interface RequestHandler {
 			throws IOException;
 
 	/**
+	 * Called when the request encounters an exception, either in the pipeline
+	 * or as part of async processing.
+	 */
+	public void onException(ServerRequest request, ServerResponse response,
+			Throwable exception);
+
+	/**
 	 * Called when the client disconnects before the response is completed.
 	 */
 	public void onAbort(ServerRequest request, ServerResponse response);

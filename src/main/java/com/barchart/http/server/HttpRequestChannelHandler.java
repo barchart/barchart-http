@@ -20,8 +20,8 @@ import com.barchart.http.request.RequestHandlerMapping;
 public class HttpRequestChannelHandler extends
 		ChannelInboundMessageHandlerAdapter<HttpRequest> {
 
-	private static final AttributeKey<ServerResponseImpl> ATTR_RESPONSE =
-			new AttributeKey<ServerResponseImpl>("response");
+	private static final AttributeKey<PooledServerResponse> ATTR_RESPONSE =
+			new AttributeKey<PooledServerResponse>("response");
 
 	private final HttpServerConfig config;
 
@@ -47,10 +47,10 @@ public class HttpRequestChannelHandler extends
 				msg.getUri().substring(mapping.path().length());
 
 		// Create request/response
-		final ServerRequestImpl request = new ServerRequestImpl();
+		final PooledServerRequest request = new PooledServerRequest();
 		request.init(msg, relativePath);
 
-		final ServerResponseImpl response = new ServerResponseImpl();
+		final PooledServerResponse response = new PooledServerResponse();
 		response.init(ctx, mapping.handler(), request);
 
 		// Store in ChannelHandlerContext for future reference
@@ -91,10 +91,10 @@ public class HttpRequestChannelHandler extends
 			final Exception exception) throws IOException {
 
 		// Create request/response
-		final ServerRequestImpl request = new ServerRequestImpl();
+		final PooledServerRequest request = new PooledServerRequest();
 		request.init(msg, msg.getUri());
 
-		final ServerResponseImpl response = new ServerResponseImpl();
+		final PooledServerResponse response = new PooledServerResponse();
 		response.init(ctx, null, request);
 		response.setStatus(status);
 
@@ -125,7 +125,7 @@ public class HttpRequestChannelHandler extends
 	@Override
 	public void channelInactive(final ChannelHandlerContext ctx) {
 
-		final ServerResponseImpl response = ctx.attr(ATTR_RESPONSE).get();
+		final PooledServerResponse response = ctx.attr(ATTR_RESPONSE).get();
 
 		if (response != null && !response.isFinished()) {
 
@@ -135,6 +135,26 @@ public class HttpRequestChannelHandler extends
 
 			if (handler != null) {
 				handler.onAbort(response.request(), response);
+			}
+
+		}
+
+	}
+
+	@Override
+	public void exceptionCaught(final ChannelHandlerContext ctx,
+			final Throwable exception) {
+
+		final PooledServerResponse response = ctx.attr(ATTR_RESPONSE).get();
+
+		if (response != null && !response.isFinished()) {
+
+			response.close();
+
+			final RequestHandler handler = response.handler();
+
+			if (handler != null) {
+				handler.onException(response.request(), response, exception);
 			}
 
 		}

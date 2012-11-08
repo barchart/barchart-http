@@ -27,7 +27,7 @@ import com.barchart.http.request.RequestAttribute;
 import com.barchart.http.request.RequestAttributeKey;
 import com.barchart.http.request.ServerRequest;
 
-class ServerRequestImpl implements ServerRequest {
+public class PooledServerRequest implements ServerRequest {
 
 	private HttpRequest nettyRequest;
 
@@ -41,7 +41,7 @@ class ServerRequestImpl implements ServerRequest {
 
 	private String remoteUser = null;
 
-	ServerRequestImpl() {
+	public PooledServerRequest() {
 	}
 
 	void init(final HttpRequest nettyRequest_, final String relativeUri_) {

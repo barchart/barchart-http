@@ -36,10 +36,11 @@ import com.barchart.http.request.ServerResponse;
 /**
  * Not thread safe.
  */
-class ServerResponseImpl extends DefaultHttpResponse implements ServerResponse {
+public class PooledServerResponse extends DefaultHttpResponse implements
+		ServerResponse {
 
 	private static final Logger log = LoggerFactory
-			.getLogger(ServerResponseImpl.class);
+			.getLogger(PooledServerResponse.class);
 
 	private final Collection<Cookie> cookies = new HashSet<Cookie>();
 
@@ -57,7 +58,7 @@ class ServerResponseImpl extends DefaultHttpResponse implements ServerResponse {
 	private boolean started = false;
 	private boolean finished = false;
 
-	ServerResponseImpl() {
+	public PooledServerResponse() {
 		super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 	}
 
