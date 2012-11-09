@@ -94,6 +94,13 @@ public class HttpServer {
 	}
 
 	/**
+	 * Return a future for the server shutdown process.
+	 */
+	public ChannelFuture shutdownFuture() {
+		return serverChannel.closeFuture();
+	}
+
+	/**
 	 * Shutdown the server and kill all active client connections.
 	 */
 	public ChannelGroupFuture kill() {

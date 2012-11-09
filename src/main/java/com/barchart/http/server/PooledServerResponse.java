@@ -25,6 +25,8 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +54,14 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	private OutputStream out;
 	private Writer writer;
 
+	private final Lock finishLock = new ReentrantLock();
+
 	private Charset charSet = CharsetUtil.UTF_8;
 
 	private boolean suspended = false;
 	private boolean started = false;
 	private boolean finished = false;
+	private boolean closed = false;
 
 	public PooledServerResponse() {
 		super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
@@ -68,6 +73,13 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		context = context_;
 		handler = handler_;
 		request = request_;
+
+		charSet = CharsetUtil.UTF_8;
+
+		finished = false;
+		suspended = false;
+		closed = false;
+		started = false;
 
 		content = Unpooled.buffer();
 		setContent(content);
@@ -234,44 +246,48 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	@Override
 	public void finish() throws IOException {
 
-		checkFinished();
+		if (finishLock.tryLock()) {
 
-		try {
+			checkFinished();
 
-			ChannelFuture writeFuture;
+			try {
 
-			final HttpTransferEncoding te = getTransferEncoding();
-			if (te == HttpTransferEncoding.CHUNKED
-					|| te == HttpTransferEncoding.STREAMED) {
+				ChannelFuture writeFuture;
 
-				if (!started) {
-					log.debug("Warning, empty response");
-					startResponse();
+				final HttpTransferEncoding te = getTransferEncoding();
+				if (te == HttpTransferEncoding.CHUNKED
+						|| te == HttpTransferEncoding.STREAMED) {
+
+					if (!started) {
+						log.debug("Warning, empty response");
+						startResponse();
+					}
+
+					writeFuture = context.write(HttpChunk.LAST_CHUNK);
+
+				} else {
+
+					writeFuture = startResponse();
+
 				}
 
-				writeFuture = context.write(HttpChunk.LAST_CHUNK);
+				// Mark finished before resetting suspended to avoid
+				// synchronization issue with channel handler auto-finish logic
+				finished = true;
+				suspended = false;
 
-			} else {
+				if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
+					writeFuture.addListener(ChannelFutureListener.CLOSE);
+				}
 
-				writeFuture = startResponse();
-
+			} finally {
+				close();
 			}
 
-			// Mark finished before resetting suspended to avoid synchronization
-			// issue with channel handler auto-finish logic
-			finished = true;
-			suspended = false;
+		} else {
 
-			if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
-				writeFuture.addListener(ChannelFutureListener.CLOSE);
-			}
-
-		} finally {
-
-			if (handler != null) {
-				handler.onComplete(request, this);
-			}
-
+			throw new IllegalStateException(
+					"ServerResponse has already finished");
 		}
 
 	}
@@ -287,12 +303,43 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		out.flush();
 	}
 
+	/**
+	 * Closes this request to future interaction. This method is thread-safe,
+	 * and calls the associated handler's onComplete() method, guaranteeing it
+	 * is only called once per request.
+	 */
 	void close() {
 
-		finished = true;
+		// Only the first call does anything, no need to wait if lock fails
+		if (finishLock.tryLock()) {
 
-		if (handler != null) {
-			handler.onComplete(request, this);
+			try {
+
+				if (!closed) {
+
+					closed = true;
+					finished = true;
+					suspended = false;
+					started = false;
+
+					if (handler != null) {
+						handler.onComplete(request, this);
+					}
+
+					// Clear resources
+					handler = null;
+					request = null;
+					context = null;
+
+					out = null;
+					writer = null;
+
+				}
+
+			} finally {
+				finishLock.unlock();
+			}
+
 		}
 
 	}

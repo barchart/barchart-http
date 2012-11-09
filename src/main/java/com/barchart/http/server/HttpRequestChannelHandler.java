@@ -129,13 +129,14 @@ public class HttpRequestChannelHandler extends
 
 		if (response != null && !response.isFinished()) {
 
-			response.close();
-
 			final RequestHandler handler = response.handler();
 
 			if (handler != null) {
 				handler.onAbort(response.request(), response);
 			}
+
+			// response.close() calls handler.onComplete() also
+			response.close();
 
 		}
 
