@@ -63,16 +63,21 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	private boolean finished = false;
 	private boolean closed = false;
 
+	private long requestTime = 0;
+	private RequestLogger logger;
+
 	public PooledServerResponse() {
 		super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 	}
 
 	void init(final ChannelHandlerContext context_,
-			final RequestHandler handler_, final ServerRequest request_) {
+			final RequestHandler handler_, final ServerRequest request_,
+			final RequestLogger logger_) {
 
 		context = context_;
 		handler = handler_;
 		request = request_;
+		logger = logger_;
 
 		charSet = CharsetUtil.UTF_8;
 
@@ -86,6 +91,8 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 		out = new ByteBufOutputStream(content);
 		writer = new OutputStreamWriter(out, charSet);
+
+		requestTime = System.currentTimeMillis();
 
 	}
 
@@ -279,6 +286,10 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 				if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
 					writeFuture.addListener(ChannelFutureListener.CLOSE);
 				}
+
+				// Record to access log
+				logger.access(request, this, System.currentTimeMillis()
+						- requestTime);
 
 			} finally {
 				close();

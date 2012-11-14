@@ -28,6 +28,7 @@ public class HttpServerConfig {
 	private SocketAddress address;
 	private int maxConnections = -1;
 	private ErrorHandler errorHandler = new DefaultErrorHandler();
+	private RequestLogger requestLogger = new NullRequestLogger();
 	private EventLoopGroup parentGroup = new NioEventLoopGroup();
 	private EventLoopGroup childGroup = new NioEventLoopGroup();
 
@@ -52,6 +53,14 @@ public class HttpServerConfig {
 	 */
 	public HttpServerConfig errorHandler(final ErrorHandler handler) {
 		errorHandler = handler;
+		return this;
+	}
+
+	/**
+	 * Set the request logger.
+	 */
+	public HttpServerConfig logger(final RequestLogger logger_) {
+		requestLogger = logger_;
 		return this;
 	}
 
@@ -118,6 +127,13 @@ public class HttpServerConfig {
 	 */
 	public ErrorHandler errorHandler() {
 		return errorHandler;
+	}
+
+	/**
+	 * Get the request logger.
+	 */
+	public RequestLogger logger() {
+		return requestLogger;
 	}
 
 	/**

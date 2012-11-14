@@ -39,7 +39,7 @@ public class HttpRequestChannelHandler extends
 				config.getRequestMapping(msg.getUri());
 
 		if (mapping == null) {
-			handleError(ctx, msg, HttpResponseStatus.NOT_FOUND, null);
+			sendNotFound(ctx, msg);
 			return;
 		}
 
@@ -51,7 +51,7 @@ public class HttpRequestChannelHandler extends
 		request.init(msg, relativePath);
 
 		final PooledServerResponse response = new PooledServerResponse();
-		response.init(ctx, mapping.handler(), request);
+		response.init(ctx, mapping.handler(), request, config.logger());
 
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
@@ -75,6 +75,8 @@ public class HttpRequestChannelHandler extends
 						+ " was thrown while handling this exception.");
 			}
 
+			config.logger().error(request, response, e);
+
 		} finally {
 
 			// If handler did not request async response, finish request
@@ -86,17 +88,16 @@ public class HttpRequestChannelHandler extends
 
 	}
 
-	private void handleError(final ChannelHandlerContext ctx,
-			final HttpRequest msg, final HttpResponseStatus status,
-			final Exception exception) throws IOException {
+	private void sendNotFound(final ChannelHandlerContext ctx,
+			final HttpRequest msg) throws IOException {
 
 		// Create request/response
 		final PooledServerRequest request = new PooledServerRequest();
 		request.init(msg, msg.getUri());
 
 		final PooledServerResponse response = new PooledServerResponse();
-		response.init(ctx, null, request);
-		response.setStatus(status);
+		response.init(ctx, null, request, config.logger());
+		response.setStatus(HttpResponseStatus.NOT_FOUND);
 
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
@@ -104,7 +105,7 @@ public class HttpRequestChannelHandler extends
 		try {
 
 			// Process request
-			config.errorHandler().onError(request, response, exception);
+			config.errorHandler().onError(request, response, null);
 
 		} catch (final Exception e) {
 
@@ -155,6 +156,8 @@ public class HttpRequestChannelHandler extends
 			if (handler != null) {
 				handler.onException(response.request(), response, exception);
 			}
+
+			config.logger().error(response.request(), response, exception);
 
 			response.close();
 
