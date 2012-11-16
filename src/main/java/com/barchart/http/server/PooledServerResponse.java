@@ -107,6 +107,11 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	}
 
 	@Override
+	public void setCookie(final Cookie cookie) {
+		cookies.add(cookie);
+	}
+
+	@Override
 	public void setCookie(final String name, final String value) {
 		cookies.add(new DefaultCookie(name, value));
 	}
@@ -120,6 +125,11 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	public void setCharacterEncoding(final String charSet_) {
 		charSet = Charset.forName(charSet_);
 		writer = new OutputStreamWriter(out, charSet);
+	}
+
+	@Override
+	public Charset getCharacterEncoding() {
+		return charSet;
 	}
 
 	@Override

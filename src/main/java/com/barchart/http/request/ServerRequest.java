@@ -5,6 +5,8 @@ import io.netty.handler.codec.http.HttpRequest;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +19,21 @@ public interface ServerRequest extends HttpRequest {
 
 	public String getQueryString();
 
+	public String getHandlerUri();
+
 	public String getPathInfo();
 
+	public String getScheme();
+
 	public String getRemoteUser();
+
+	public String getServerHost();
+
+	public InetSocketAddress getServerAddress();
+
+	public InetSocketAddress getRemoteAddress();
+
+	public boolean isSecure();
 
 	/* Request parameters */
 
@@ -34,6 +48,8 @@ public interface ServerRequest extends HttpRequest {
 	public Cookie getCookie(String name);
 
 	/* Request content */
+
+	public Charset getCharacterEncoding();
 
 	public String getContentType();
 

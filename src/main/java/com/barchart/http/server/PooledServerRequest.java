@@ -16,6 +16,7 @@ import io.netty.util.CharsetUtil;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ public class PooledServerRequest implements ServerRequest {
 
 	private HttpRequest nettyRequest;
 
+	private String baseUri;
 	private String pathInfo;
 	private String queryString;
 
@@ -48,14 +50,16 @@ public class PooledServerRequest implements ServerRequest {
 
 		nettyRequest = nettyRequest_;
 
-		final int q = relativeUri_.indexOf('?');
+		baseUri = relativeUri_;
+
+		final int q = baseUri.indexOf('?');
 
 		if (q == -1) {
-			pathInfo = relativeUri_;
+			pathInfo = baseUri;
 			queryString = null;
 		} else {
-			pathInfo = relativeUri_.substring(0, q);
-			queryString = relativeUri_.substring(q + 1);
+			pathInfo = baseUri.substring(0, q);
+			queryString = baseUri.substring(q + 1);
 		}
 
 		// TODO check user authentication
@@ -68,8 +72,38 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	@Override
+	public String getHandlerUri() {
+		return baseUri;
+	}
+
+	@Override
 	public String getPathInfo() {
 		return pathInfo;
+	}
+
+	@Override
+	public String getScheme() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getServerHost() {
+		return getHeader(HttpHeaders.Names.HOST);
+	}
+
+	@Override
+	public InetSocketAddress getServerAddress() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public InetSocketAddress getRemoteAddress() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isSecure() {
+		return false;
 	}
 
 	@Override
@@ -77,6 +111,7 @@ public class PooledServerRequest implements ServerRequest {
 		return nettyRequest.getHeader("Content-Type");
 	}
 
+	@Override
 	public Charset getCharacterEncoding() {
 
 		final String contentType = getContentType();

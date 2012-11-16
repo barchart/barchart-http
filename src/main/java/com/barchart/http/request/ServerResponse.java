@@ -1,15 +1,22 @@
 package com.barchart.http.request;
 
+import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpResponse;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.charset.Charset;
 
 /**
  * Encapsulates a response to an inbound ServerRequest.
  */
 public interface ServerResponse extends HttpResponse {
+
+	/**
+	 * Send a cookie to the client.
+	 */
+	public void setCookie(Cookie cookie);
 
 	/**
 	 * Send a cookie to the client.
@@ -20,6 +27,11 @@ public interface ServerResponse extends HttpResponse {
 	 * Set the character encoding for this response (default is UTF-8).
 	 */
 	public void setCharacterEncoding(String charSet);
+
+	/**
+	 * Set the character encoding for this response (default is UTF-8).
+	 */
+	public Charset getCharacterEncoding();
 
 	/**
 	 * Set the content-length for this response. This is set automatically by
