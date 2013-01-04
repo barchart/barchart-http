@@ -46,8 +46,14 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 	public void onException(final ServerRequest request,
 			final ServerResponse response, final Throwable exception) {
 
-		log.warn("Request encountered an uncaught exception, cancelling tasks",
-				exception);
+		if (log.isTraceEnabled()) {
+			log.trace(
+					"Request encountered an uncaught exception, cancelling tasks",
+					exception);
+		} else {
+			log.debug("Request encountered an uncaught exception, cancelling tasks: "
+					+ exception.getMessage());
+		}
 
 		synchronized (ATTR_CANCEL_TASKS) {
 
