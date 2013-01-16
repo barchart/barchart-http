@@ -2,6 +2,7 @@ package com.barchart.http.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
@@ -35,6 +36,8 @@ public class PooledServerRequest implements ServerRequest {
 	private String baseUri;
 	private String pathInfo;
 	private String queryString;
+	private final InetSocketAddress local;
+	private final InetSocketAddress remote;
 
 	private Map<String, List<String>> queryStringDecoded = null;
 	private Map<String, Cookie> cookies;
@@ -43,7 +46,9 @@ public class PooledServerRequest implements ServerRequest {
 
 	private String remoteUser = null;
 
-	public PooledServerRequest() {
+	public PooledServerRequest(final Channel channel) {
+		local = (InetSocketAddress) channel.localAddress();
+		remote = (InetSocketAddress) channel.remoteAddress();
 	}
 
 	void init(final HttpRequest nettyRequest_, final String relativeUri_) {
@@ -83,6 +88,7 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public String getScheme() {
+		// XXX
 		throw new UnsupportedOperationException();
 	}
 
@@ -93,12 +99,12 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public InetSocketAddress getServerAddress() {
-		throw new UnsupportedOperationException();
+		return local;
 	}
 
 	@Override
 	public InetSocketAddress getRemoteAddress() {
-		throw new UnsupportedOperationException();
+		return remote;
 	}
 
 	@Override

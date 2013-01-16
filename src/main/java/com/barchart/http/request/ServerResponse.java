@@ -79,6 +79,11 @@ public interface ServerResponse extends HttpResponse {
 	public void write(byte[] data, int offset, int length) throws IOException;
 
 	/**
+	 * Get the number of bytes written to the client for this response.
+	 */
+	public long writtenBytes();
+
+	/**
 	 * Flush the output buffers. Buffers are flushed automatically, and this
 	 * should not usually be necessary.
 	 */

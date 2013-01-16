@@ -47,7 +47,8 @@ public class HttpRequestChannelHandler extends
 				msg.getUri().substring(mapping.path().length());
 
 		// Create request/response
-		final PooledServerRequest request = new PooledServerRequest();
+		final PooledServerRequest request =
+				new PooledServerRequest(ctx.channel());
 		request.init(msg, relativePath);
 
 		final PooledServerResponse response = new PooledServerResponse();
@@ -92,7 +93,8 @@ public class HttpRequestChannelHandler extends
 			final HttpRequest msg) throws IOException {
 
 		// Create request/response
-		final PooledServerRequest request = new PooledServerRequest();
+		final PooledServerRequest request =
+				new PooledServerRequest(ctx.channel());
 		request.init(msg, msg.getUri());
 
 		final PooledServerResponse response = new PooledServerResponse();

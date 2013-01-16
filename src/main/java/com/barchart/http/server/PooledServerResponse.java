@@ -220,6 +220,16 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	}
 
 	@Override
+	public long writtenBytes() {
+		if (out instanceof ByteBufOutputStream) {
+			return ((ByteBufOutputStream) out).writtenBytes();
+		} else if (out instanceof HttpChunkOutputStream) {
+			return ((HttpChunkOutputStream) out).writtenBytes();
+		}
+		return 0;
+	}
+
+	@Override
 	public void suspend() {
 
 		checkFinished();
@@ -389,6 +399,7 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 		private final ByteBuf content = Unpooled.buffer();
 		private final ChannelHandlerContext context;
+		private long writtenBytes = 0;
 
 		HttpChunkOutputStream(final ChannelHandlerContext context_) {
 			context = context_;
@@ -400,6 +411,11 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		@Override
 		public void write(final int b) throws IOException {
 			content.writeByte(b);
+			writtenBytes++;
+		}
+
+		public long writtenBytes() {
+			return writtenBytes;
 		}
 
 		@Override
