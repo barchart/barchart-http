@@ -28,17 +28,7 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 	public void onAbort(final ServerRequest request,
 			final ServerResponse response) {
 
-		synchronized (ATTR_CANCEL_TASKS) {
-
-			final List<Future<?>> tasks = request.attr(ATTR_CANCEL_TASKS).get();
-
-			if (tasks != null) {
-				for (final Future<?> future : tasks) {
-					future.cancel(true);
-				}
-			}
-
-		}
+		cancelTasks(request);
 
 	}
 
@@ -55,13 +45,21 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 					+ exception.getMessage());
 		}
 
+		cancelTasks(request);
+
+	}
+
+	protected synchronized void cancelTasks(final ServerRequest request) {
+
 		synchronized (ATTR_CANCEL_TASKS) {
 
 			final List<Future<?>> tasks = request.attr(ATTR_CANCEL_TASKS).get();
 
 			if (tasks != null) {
 				for (final Future<?> future : tasks) {
-					future.cancel(true);
+					if (!future.isDone()) {
+						future.cancel(true);
+					}
 				}
 			}
 
@@ -90,7 +88,7 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 	}
 
 	private class CancelFutureList extends ArrayList<Future<?>> {
-
+		private static final long serialVersionUID = 1L;
 	}
 
 }
