@@ -51,12 +51,14 @@ public class TestHttpServer {
 
 		server = new HttpServer();
 
-		basic = new TestRequestHandler("basic", false, 0, false);
-		async = new TestRequestHandler("async", true, 0, false);
-		asyncDelayed = new TestRequestHandler("async-delayed", true, 50, false);
+		basic = new TestRequestHandler("basic", false, 0, 0, false);
+		async = new TestRequestHandler("async", true, 0, 0, false);
+		asyncDelayed =
+				new TestRequestHandler("async-delayed", true, 50, 0, false);
 		clientDisconnect =
-				new TestRequestHandler("client-disconnect", true, 1000, false);
-		error = new TestRequestHandler("error", false, 0, true);
+				new TestRequestHandler("client-disconnect", true, 500, 500,
+						false);
+		error = new TestRequestHandler("error", false, 0, 0, true);
 
 		final HttpServerConfig config =
 				new HttpServerConfig().requestHandler("/basic", basic)
@@ -140,7 +142,7 @@ public class TestHttpServer {
 				get.abort();
 			}
 
-		}, 500, TimeUnit.MILLISECONDS);
+		}, 250, TimeUnit.MILLISECONDS);
 
 		try {
 			client.execute(get);
@@ -289,15 +291,19 @@ public class TestHttpServer {
 
 		protected String content = null;
 		protected boolean async = false;
-		protected long wait = 0;
+		protected long execTime = 0;
+		protected long writeTime = 0;
 		protected boolean error = false;
+		protected Exception cancelException = null;
 
 		TestRequestHandler(final String content_, final boolean async_,
-				final long wait_, final boolean error_) {
+				final long execTime_, final long writeTime_,
+				final boolean error_) {
 
 			content = content_;
 			async = async_;
-			wait = wait_;
+			execTime = execTime_;
+			writeTime = writeTime_;
 			error = error_;
 
 		}
@@ -308,12 +314,12 @@ public class TestHttpServer {
 
 			requests.incrementAndGet();
 
-			final Runnable task = response(response, content, error);
+			final Runnable task = response(response);
 
 			if (async) {
 				response.suspend();
 				lastFuture =
-						executor.schedule(task, wait, TimeUnit.MILLISECONDS);
+						executor.schedule(task, execTime, TimeUnit.MILLISECONDS);
 				cancelOnAbort(request, response, lastFuture);
 			} else {
 				task.run();
@@ -321,8 +327,7 @@ public class TestHttpServer {
 
 		}
 
-		public Runnable response(final ServerResponse response,
-				final String content, final boolean error) {
+		public Runnable response(final ServerResponse response) {
 
 			return new Runnable() {
 
@@ -335,6 +340,12 @@ public class TestHttpServer {
 
 					try {
 						response.write(content.getBytes());
+						if (writeTime > 0) {
+							try {
+								Thread.sleep(writeTime);
+							} catch (final InterruptedException e) {
+							}
+						}
 						response.finish();
 					} catch (final IOException e) {
 						e.printStackTrace();

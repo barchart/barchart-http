@@ -36,14 +36,9 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 	public void onException(final ServerRequest request,
 			final ServerResponse response, final Throwable exception) {
 
-		if (log.isTraceEnabled()) {
-			log.trace(
-					"Request encountered an uncaught exception, cancelling tasks",
-					exception);
-		} else {
-			log.debug("Request encountered an uncaught exception, cancelling tasks: "
-					+ exception.getMessage());
-		}
+		log.debug(
+				"Request encountered an uncaught exception, cancelling tasks",
+				exception);
 
 		cancelTasks(request);
 
@@ -58,7 +53,12 @@ public abstract class CancellableRequestHandler extends RequestHandlerBase {
 			if (tasks != null) {
 				for (final Future<?> future : tasks) {
 					if (!future.isDone()) {
-						future.cancel(true);
+						try {
+							future.cancel(true);
+						} catch (final Exception e) {
+							// Swallow cancellation exceptions
+							log.debug("Uncaught exception while cancelling", e);
+						}
 					}
 				}
 			}
