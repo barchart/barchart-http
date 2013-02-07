@@ -279,22 +279,28 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 			try {
 
-				ChannelFuture writeFuture;
+				ChannelFuture writeFuture = null;
 
-				final HttpTransferEncoding te = getTransferEncoding();
-				if (te == HttpTransferEncoding.CHUNKED
-						|| te == HttpTransferEncoding.STREAMED) {
+				// Handlers might call finish() on a cancelled/closed channel,
+				// don't cause unnecessary pipeline exceptions
+				if (context.channel().isOpen()) {
 
-					if (!started) {
-						log.debug("Warning, empty response");
-						startResponse();
+					final HttpTransferEncoding te = getTransferEncoding();
+					if (te == HttpTransferEncoding.CHUNKED
+							|| te == HttpTransferEncoding.STREAMED) {
+
+						if (!started) {
+							log.debug("Warning, empty response");
+							startResponse();
+						}
+
+						writeFuture = context.write(HttpChunk.LAST_CHUNK);
+
+					} else {
+
+						writeFuture = startResponse();
+
 					}
-
-					writeFuture = context.write(HttpChunk.LAST_CHUNK);
-
-				} else {
-
-					writeFuture = startResponse();
 
 				}
 
