@@ -10,14 +10,13 @@
 
 	<groupId>com.barchart.http</groupId>
 	<artifactId>barchart-http</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<scm>
 		<url>https://github.com/barchart/barchart-http</url>
 		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
-	  <tag>barchart-http-1.0.4</tag>
   </scm>
 
 	<dependencies>
