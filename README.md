@@ -1,7 +1,7 @@
 barchart-http
 =============
 
-A high performance HTTP server built on top of Netty 4.
+A lightweight, high performance, asynchronous HTTP server built on top of Netty 4.
 
 Key features:
 
