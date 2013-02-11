@@ -51,6 +51,9 @@ public void completeRequest(String username) {
 }
 ```
 
+Failure to call response.finish() will result in a hung connection that stays open until the client
+decides to close it remotely, so you should guarantee that it is called on every request.
+
 For additional convenience, there is a base request handler implementation that allows you to register
 task Futures, and automatically cancels them for you in the event of a client disconnect or channel
 exception:
