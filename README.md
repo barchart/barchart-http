@@ -79,7 +79,7 @@ Configuration is done programmatically with a fluent API, to allow for easy adap
 application configuration mechanism you want to implement.
 
 ```java
-[HttpServer](https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/server/HttpServer.java) httpServer = new HttpServer().configure(new HttpServerConfig()
+HttpServer httpServer = new HttpServer().configure(new HttpServerConfig()
     .address(new InetSocketAddress("0.0.0.0", 8080))
     .requestHandler("/login", new LoginHandler())
     .errorHandler(new PrettyErrorHandler())
