@@ -91,7 +91,7 @@ httpServer.listen();
 ```
 
 The configuration object is mutable, and many changes to it will be applied to the server at runtime
-as long as it does not request a rebind. This allows you to dynamically add or remove request handler
+as long as it does not require a rebind. This allows you to dynamically add or remove request handler
 paths while the server is running, for example, but not change the address or port the server is
 listening on.
 
