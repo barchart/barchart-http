@@ -51,8 +51,10 @@ public class HttpRequestChannelHandler extends
 				new PooledServerRequest(ctx.channel());
 		request.init(msg, relativePath);
 
+		final RequestHandler handler = mapping.handler(request);
+
 		final PooledServerResponse response = new PooledServerResponse();
-		response.init(ctx, mapping.handler(), request, config.logger());
+		response.init(ctx, handler, request, config.logger());
 
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
@@ -60,7 +62,7 @@ public class HttpRequestChannelHandler extends
 		try {
 
 			// Process request
-			mapping.handler().onRequest(request, response);
+			handler.onRequest(request, response);
 
 		} catch (final Exception e) {
 

@@ -13,6 +13,6 @@ public interface RequestHandlerFactory {
 	 * conjunction with onComplete() to implement limited-size request handler
 	 * pools to avoid excessive object creation and garbage collection.
 	 */
-	public RequestHandler newHandler();
+	public RequestHandler newHandler(ServerRequest request);
 
 }

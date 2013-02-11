@@ -159,22 +159,10 @@ public class HttpServerConfig {
 	public RequestHandlerMapping getRequestMapping(final String uri) {
 
 		for (final Map.Entry<String, Object> entry : handlers.entrySet()) {
-
 			if (uri.startsWith(entry.getKey())) {
-
-				if (entry.getValue() instanceof RequestHandler) {
-					return new RequestHandlerMapping(entry.getKey(),
-							(RequestHandler) entry.getValue());
-				}
-
-				if (entry.getValue() instanceof RequestHandlerFactory) {
-					return new RequestHandlerMapping(entry.getKey(),
-							((RequestHandlerFactory) entry.getValue())
-									.newHandler());
-				}
-
+				return RequestHandlerMapping.create(entry.getKey(),
+						entry.getValue());
 			}
-
 		}
 
 		return null;
