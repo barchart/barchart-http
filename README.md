@@ -135,5 +135,6 @@ Servlet API Compatibility
 -------------------------
 
 The server can function as a J2EE servlet container using a lightweight API wrapper built on top of the
-native request API. This is currently partially implemented as part of the barchart-osgi-servlet project,
+native request API. This is currently partially implemented as part of the 
+[barchart-osgi-servlet](https://github.com/barchart/barchart-osgi/tree/master/barchart-osgi-servlet) project,
 but requires some refactoring and additional feature development before it is usable.
