@@ -103,7 +103,7 @@ httpServer.config().requestHandler("/userinfo", new UserInfoHandler());
 httpServer.config().removeRequestHandler("/userinfo");
 ```
 
-[HttpServerConfig](https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/server/HttpServer.java).requestHandler() accepts either a
+[HttpServerConfig](https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/server/HttpServerConfig.java).requestHandler() accepts either a
 [RequestHandler](https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/request/RequestHandler.java)
 or [RequestHandlerFactory](https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/request/RequestHandlerFactory.java)
 instance, allowing you flexibility in controlling the handler lifecycle.
