@@ -27,10 +27,14 @@ response.suspend():
 
 ```java
 public void onRequest(ServerRequest request, ServerResponse response) throws IOException {
+
     String id = request.getParameter("id");
+    
     // Asynchronous lookup method, which will call back when complete
     lookupUsername(id, this);
+    
     response.suspend();
+    
 }
 ```
 The connection will remain open until the request handler explicitly tells it to close the connection.
@@ -39,8 +43,32 @@ To do this, the callback calls response.finish():
 ```java
 // Called by lookupUsername() on completion
 public void completeRequest(String username) {
+
     response.write("Username is " + username);
+    
     response.finish();
+    
+}
+```
+
+For additional convenience, there is a base request handler implementation that allows you to register
+task Futures, and automatically cancels them for you in the event of a client disconnect or channel
+exception:
+
+```java
+public class MyRequestHandler extends CancellableRequestHandler {
+
+    public void onRequest(ServerRequest request, ServerResponse response) throws IOException {
+    
+        Future<String> lookupFuture = lookupUsername(request.getParameter("name"), this);
+        
+        // Registers the async task with the framework for cancellation on connection failure
+        cancelOnAbort(lookupFuture);
+        
+        response.suspend();
+        
+    }
+    
 }
 ```
 
@@ -83,12 +111,14 @@ Shutting down the server can be done gracefully or forcibly:
 ```java
 // Graceful shutdown, leaves existing client connections active
 ChannelFuture shutdownFuture = httpServer.shutdown();
+
 // To restart, wait for shutdown to complete:
 shutdownFuture.get();
 ChannelFuture listenFuture = httpService.listen();
 
 // Forcible shutdown, closes all active client connections
 ChannelGroupFuture killFuture = httpServer.kill();
+
 // Wait for all connections to close (server and client)
 killFuture.get();
 ```
