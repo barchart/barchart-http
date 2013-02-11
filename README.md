@@ -103,7 +103,9 @@ httpServer.config().requestHandler("/userinfo", new UserInfoHandler());
 httpServer.config().removeRequestHandler("/userinfo");
 ```
 
-HttpServerConfig.requestHandler() accepts either a RequestHandler or RequestHandlerFactory
+HttpServerConfig.requestHandler() accepts either a
+[https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/request/RequestHandler.java][RequestHandler]
+or [https://github.com/barchart/barchart-http/blob/master/src/main/java/com/barchart/http/request/RequestHandlerFactory.java][RequestHandlerFactory]
 instance, allowing you flexibility in controlling the handler lifecycle.
 
 Shutting down the server can be done gracefully or forcibly:
