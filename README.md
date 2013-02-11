@@ -6,7 +6,7 @@ A high performance HTTP server built on top of Netty 4.
 Key features:
 
 1. High performance NIO built using Netty 4's core HTTP classes
-2. Asynchronous request/response framework as the primary API, not bolted on as an afterthought
+2. Asynchronous response handling support built into the request API
 3. Simple programmatic configuration and lifecycle management for easily embedding in other server applications
 4. Hassle-free websocket support
 5. Implements J2EE servlet API via a lightweight compatibility layer
@@ -77,6 +77,21 @@ httpServer.config().removeRequestHandler("/userinfo");
 
 HttpServerConfig.requestHandler() accepts either a RequestHandler or RequestHandlerFactory
 instance, allowing you flexibility in controlling the handler lifecycle.
+
+Shutting down the server can be done gracefully or forcibly:
+
+```java
+// Graceful shutdown, leaves existing client connections active
+ChannelFuture shutdownFuture = httpServer.shutdown();
+// To restart, wait for shutdown to complete:
+shutdownFuture.get();
+ChannelFuture listenFuture = httpService.listen();
+
+// Forcible shutdown, closes all active client connections
+ChannelGroupFuture killFuture = httpServer.kill();
+// Wait for all connections to close (server and client)
+killFuture.get();
+```
 
 Websockets
 ----------
