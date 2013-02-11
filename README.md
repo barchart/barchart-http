@@ -5,11 +5,11 @@ A high performance HTTP server built on top of Netty 4.
 
 Key features:
 
-1) High performance NIO built using Netty 4's core HTTP classes
-2) Asynchronous request/response framework as the primary API, not bolted on as an afterthought
-3) Simple programmatic configuration and lifecycle management for easily embedding in other server applications
-4) Hassle-free websocket support
-5) Implements J2EE servlet API via a lightweight compatibility layer
+1. High performance NIO built using Netty 4's core HTTP classes
+2. Asynchronous request/response framework as the primary API, not bolted on as an afterthought
+3. Simple programmatic configuration and lifecycle management for easily embedding in other server applications
+4. Hassle-free websocket support
+5. Implements J2EE servlet API via a lightweight compatibility layer
 
 High Performance
 ----------------
