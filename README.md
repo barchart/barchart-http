@@ -16,7 +16,7 @@ High Performance
 
 Barchart HTTP server is built on top of Netty 4, allowing it to take full advantage of Netty's high performance
 NIO stack. The server is in its early stages and formal benchmarks are incomplete, but in its current state it
-outperforms Apache 2.x for basic requests by 3x or more (see Benchmarks below.)
+outperforms Apache 2.x for basic requests by 30% or more (see Benchmarks below.)
 
 Asynchronous Request Framework
 ------------------------------
@@ -208,4 +208,4 @@ Percentage of the requests served within a certain time (ms)
  100%     19 (longest request)
 ```
 
-In comparison, Apache 2.x on the same machine maxed out at 4570 req/sec.
+This was at least 30% faster than Apache on the same machine.
