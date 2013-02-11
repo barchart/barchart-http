@@ -14,7 +14,7 @@ import com.barchart.http.request.ServerResponse;
 
 /**
  * Base class for stateless request handlers that want to register Futures that
- * will be cancelled when the client disconnects.
+ * will be cancelled if the client disconnects.
  */
 public abstract class CancellableRequestHandler extends RequestHandlerBase {
 

@@ -27,7 +27,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 /**
- * HTTP server core.
+ * High performance HTTP server.
  */
 public class HttpServer {
 

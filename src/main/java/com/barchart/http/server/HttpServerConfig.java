@@ -16,6 +16,9 @@ import com.barchart.http.request.RequestHandler;
 import com.barchart.http.request.RequestHandlerFactory;
 import com.barchart.http.request.RequestHandlerMapping;
 
+/**
+ * Configuration values for initializing HttpServer.
+ */
 public class HttpServerConfig {
 
 	private final Map<String, AuthorizationHandler> authorizationHandlers =

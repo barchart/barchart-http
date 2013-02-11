@@ -6,17 +6,15 @@ import com.barchart.http.request.ServerResponse;
 public class NullRequestLogger implements RequestLogger {
 
 	@Override
-	public void access(ServerRequest request, ServerResponse response,
-			long duration) {
-		// TODO Auto-generated method stub
-
+	public void access(final ServerRequest request,
+			final ServerResponse response, final long duration) {
+		// Noop
 	}
 
 	@Override
-	public void error(ServerRequest request, ServerResponse response,
-			Throwable exception) {
-		// TODO Auto-generated method stub
-
+	public void error(final ServerRequest request,
+			final ServerResponse response, final Throwable exception) {
+		// Noop
 	}
 
 }
