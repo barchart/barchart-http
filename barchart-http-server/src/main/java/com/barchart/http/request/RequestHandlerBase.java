@@ -1,0 +1,25 @@
+package com.barchart.http.request;
+
+
+/**
+ * Base request handler that provides default implementations of some less-used
+ * methods.
+ */
+public abstract class RequestHandlerBase implements RequestHandler {
+
+	@Override
+	public void onAbort(final ServerRequest request,
+			final ServerResponse response) {
+	}
+
+	@Override
+	public void onException(final ServerRequest request,
+			final ServerResponse response, final Throwable exception) {
+	}
+
+	@Override
+	public void onComplete(final ServerRequest request,
+			final ServerResponse response) {
+	}
+
+}
