@@ -1,6 +1,7 @@
 package com.barchart.http.request;
 
 import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.io.BufferedReader;
@@ -13,9 +14,15 @@ import java.util.Map;
 /**
  * Information about an inbound request.
  */
-public interface ServerRequest extends HttpRequest {
+public interface ServerRequest extends ServerMessage, HttpRequest {
 
 	/* Request metadata */
+
+	/**
+	 * The request method.
+	 */
+	@Override
+	public HttpMethod getMethod();
 
 	/**
 	 * The request query string.

@@ -2,6 +2,7 @@ package com.barchart.http.request;
 
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,7 +12,13 @@ import java.nio.charset.Charset;
 /**
  * Encapsulates a response to an inbound ServerRequest.
  */
-public interface ServerResponse extends HttpResponse {
+public interface ServerResponse extends ServerMessage, HttpResponse {
+
+	@Override
+	HttpResponseStatus getStatus();
+
+	@Override
+	void setStatus(HttpResponseStatus status);
 
 	/**
 	 * Send a cookie to the client.
