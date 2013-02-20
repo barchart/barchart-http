@@ -1,6 +1,5 @@
 package com.barchart.http.request;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpTransferEncoding;
 import io.netty.handler.codec.http.HttpVersion;
@@ -34,12 +33,6 @@ public interface ServerMessage extends HttpMessage {
 
 	@Override
 	public void setProtocolVersion(HttpVersion version);
-
-	@Override
-	public ByteBuf getContent();
-
-	@Override
-	public void setContent(ByteBuf content);
 
 	@Override
 	public void addHeader(String name, Object value);
