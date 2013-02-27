@@ -20,6 +20,10 @@
 		<url>https://github.com/barchart/barchart-http/issues</url>
 	</issueManagement>
 
+	<properties>
+		<projectJavaVersion>1.7</projectJavaVersion>
+	</properties>
+	
 	<scm>
 		<url>https://github.com/barchart/barchart-http</url>
 		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
