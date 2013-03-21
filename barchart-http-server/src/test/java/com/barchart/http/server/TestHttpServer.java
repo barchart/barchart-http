@@ -196,7 +196,11 @@ public class TestHttpServer {
 			@Override
 			public void run() {
 
-				server.shutdown();
+				try {
+					server.shutdown().sync();
+				} catch (final InterruptedException e1) {
+					e1.printStackTrace();
+				}
 
 				try {
 					client.execute(new HttpGet("http://localhost:8888/basic"));
