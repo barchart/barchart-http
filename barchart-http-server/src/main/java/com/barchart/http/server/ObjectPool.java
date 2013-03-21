@@ -32,9 +32,7 @@ public class ObjectPool<T> {
 	 * Create an unbounded object pool.
 	 */
 	public ObjectPool(final Callable<T> creator_) {
-		maxObjects = -1;
-		objectCreator = creator_;
-		objectPool = new LinkedBlockingQueue<T>();
+		this(-1, creator_);
 	}
 
 	/**
@@ -43,7 +41,11 @@ public class ObjectPool<T> {
 	public ObjectPool(final int maxObjects_, final Callable<T> creator_) {
 		maxObjects = maxObjects_;
 		objectCreator = creator_;
-		objectPool = new ArrayBlockingQueue<T>(maxObjects);
+		if (maxObjects_ == -1) {
+			objectPool = new LinkedBlockingQueue<T>();
+		} else {
+			objectPool = new ArrayBlockingQueue<T>(maxObjects);
+		}
 	}
 
 	/**

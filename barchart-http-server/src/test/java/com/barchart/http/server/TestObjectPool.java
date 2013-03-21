@@ -116,7 +116,7 @@ public class TestObjectPool {
 	@Test
 	public void testUnbounded() throws Exception {
 
-		objectPool = new ObjectPool<Poolable>(new Callable<Poolable>() {
+		objectPool = new ObjectPool<Poolable>(-1, new Callable<Poolable>() {
 			@Override
 			public Poolable call() throws Exception {
 				return new Poolable();
