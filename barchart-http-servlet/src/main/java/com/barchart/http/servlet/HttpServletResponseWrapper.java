@@ -44,7 +44,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
 
 	@Override
 	public String getContentType() {
-		return response.getHeader(HttpHeaders.Names.CONTENT_TYPE);
+		return response.headers().get(HttpHeaders.Names.CONTENT_TYPE);
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
 
 	@Override
 	public boolean containsHeader(final String name) {
-		return response.containsHeader(name);
+		return response.headers().contains(name);
 	}
 
 	@Override
@@ -170,32 +170,32 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
 
 	@Override
 	public void setDateHeader(final String name, final long date) {
-		response.setHeader(name, date);
+		response.headers().set(name, date);
 	}
 
 	@Override
 	public void addDateHeader(final String name, final long date) {
-		response.addHeader(name, date);
+		response.headers().add(name, date);
 	}
 
 	@Override
 	public void setHeader(final String name, final String value) {
-		response.setHeader(name, value);
+		response.headers().set(name, value);
 	}
 
 	@Override
 	public void addHeader(final String name, final String value) {
-		response.addHeader(name, value);
+		response.headers().add(name, value);
 	}
 
 	@Override
 	public void setIntHeader(final String name, final int value) {
-		response.setHeader(name, value);
+		response.headers().set(name, value);
 	}
 
 	@Override
 	public void addIntHeader(final String name, final int value) {
-		response.addHeader(name, value);
+		response.headers().add(name, value);
 	}
 
 	@Override

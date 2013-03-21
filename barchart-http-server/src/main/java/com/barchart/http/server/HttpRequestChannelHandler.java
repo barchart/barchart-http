@@ -10,11 +10,9 @@ package com.barchart.http.server;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.AttributeKey;
-
-import java.io.IOException;
 
 import com.barchart.http.request.RequestHandler;
 import com.barchart.http.request.RequestHandlerMapping;
@@ -25,21 +23,23 @@ import com.barchart.http.request.RequestHandlerMapping;
  */
 @Sharable
 public class HttpRequestChannelHandler extends
-		ChannelInboundMessageHandlerAdapter<HttpRequest> {
+		ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
 	private static final AttributeKey<PooledServerResponse> ATTR_RESPONSE =
 			new AttributeKey<PooledServerResponse>("response");
 
 	private final HttpServerConfig config;
+	private final ServerMessagePool messagePool;
 
 	public HttpRequestChannelHandler(final HttpServerConfig config_) {
-		super(HttpRequest.class);
+		super();
 		config = config_;
+		messagePool = new ServerMessagePool(config.maxConnections());
 	}
 
 	@Override
 	public void messageReceived(final ChannelHandlerContext ctx,
-			final HttpRequest msg) throws Exception {
+			final FullHttpRequest msg) throws Exception {
 
 		// Create request handler
 		final RequestHandlerMapping mapping =
@@ -54,13 +54,12 @@ public class HttpRequestChannelHandler extends
 				msg.getUri().substring(mapping.path().length());
 
 		// Create request/response
-		final PooledServerRequest request =
-				new PooledServerRequest(ctx.channel());
-		request.init(msg, relativePath);
+		final PooledServerRequest request = messagePool.getRequest();
+		request.init(ctx.channel(), msg, relativePath);
 
 		final RequestHandler handler = mapping.handler(request);
 
-		final PooledServerResponse response = new PooledServerResponse();
+		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, handler, request, config.logger());
 
 		// Store in ChannelHandlerContext for future reference
@@ -71,21 +70,21 @@ public class HttpRequestChannelHandler extends
 			// Process request
 			handler.onRequest(request, response);
 
-		} catch (final Exception e) {
+		} catch (final Throwable t) {
 
 			// Catch server errors
 			response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 
 			try {
-				config.errorHandler().onError(request, response, e);
-			} catch (final Exception e2) {
-				response.write(e.getClass()
+				config.errorHandler().onError(request, response, t);
+			} catch (final Throwable t2) {
+				response.write(t.getClass()
 						+ " was thrown while processing this request.  Additionally, "
-						+ e2.getClass()
+						+ t2.getClass()
 						+ " was thrown while handling this exception.");
 			}
 
-			config.logger().error(request, response, e);
+			config.logger().error(request, response, t);
 
 		} finally {
 
@@ -99,14 +98,13 @@ public class HttpRequestChannelHandler extends
 	}
 
 	private void sendNotFound(final ChannelHandlerContext ctx,
-			final HttpRequest msg) throws IOException {
+			final FullHttpRequest msg) throws Exception {
 
 		// Create request/response
-		final PooledServerRequest request =
-				new PooledServerRequest(ctx.channel());
-		request.init(msg, msg.getUri());
+		final PooledServerRequest request = messagePool.getRequest();
+		request.init(ctx.channel(), msg, msg.getUri());
 
-		final PooledServerResponse response = new PooledServerResponse();
+		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, null, request, config.logger());
 		response.setStatus(HttpResponseStatus.NOT_FOUND);
 
@@ -114,11 +112,10 @@ public class HttpRequestChannelHandler extends
 		ctx.attr(ATTR_RESPONSE).set(response);
 
 		try {
-
 			// Process request
 			config.errorHandler().onError(request, response, null);
 
-		} catch (final Exception e) {
+		} catch (final Throwable e) {
 
 			response.write("The requested URL was not found.  Additionally, "
 					+ e.getClass() + " was thrown while handling this error.");
@@ -141,14 +138,20 @@ public class HttpRequestChannelHandler extends
 
 		if (response != null && !response.isFinished()) {
 
-			final RequestHandler handler = response.handler();
+			try {
 
-			if (handler != null) {
-				handler.onAbort(response.request(), response);
+				final RequestHandler handler = response.handler();
+
+				if (handler != null) {
+					handler.onAbort(response.request(), response);
+				}
+
+			} finally {
+
+				// response.close() calls handler.onComplete() also
+				response.close();
+
 			}
-
-			// response.close() calls handler.onComplete() also
-			response.close();
 
 		}
 
@@ -162,15 +165,21 @@ public class HttpRequestChannelHandler extends
 
 		if (response != null && !response.isFinished()) {
 
-			final RequestHandler handler = response.handler();
+			try {
 
-			if (handler != null) {
-				handler.onException(response.request(), response, exception);
+				final RequestHandler handler = response.handler();
+
+				if (handler != null) {
+					handler.onException(response.request(), response, exception);
+				}
+
+				config.logger().error(response.request(), response, exception);
+
+			} finally {
+
+				response.close();
+
 			}
-
-			config.logger().error(response.request(), response, exception);
-
-			response.close();
 
 		}
 

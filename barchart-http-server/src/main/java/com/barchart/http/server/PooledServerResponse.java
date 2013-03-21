@@ -15,13 +15,13 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
-import io.netty.handler.codec.http.DefaultHttpChunk;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpChunk;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpTransferEncoding;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 
@@ -45,19 +45,20 @@ import com.barchart.http.request.ServerResponse;
 /**
  * Not thread safe.
  */
-public class PooledServerResponse extends DefaultHttpResponse implements
+public class PooledServerResponse extends DefaultFullHttpResponse implements
 		ServerResponse {
 
 	private static final Logger log = LoggerFactory
 			.getLogger(PooledServerResponse.class);
 
+	final ServerMessagePool pool;
+
 	private final Collection<Cookie> cookies = new HashSet<Cookie>();
 
 	private ChannelHandlerContext context;
 	private RequestHandler handler;
-	private ServerRequest request;
+	private PooledServerRequest request;
 
-	private ByteBuf content = null;
 	private OutputStream out;
 	private Writer writer;
 
@@ -73,12 +74,13 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 	private long requestTime = 0;
 	private RequestLogger logger;
 
-	public PooledServerResponse() {
+	public PooledServerResponse(final ServerMessagePool pool_) {
 		super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+		pool = pool_;
 	}
 
 	void init(final ChannelHandlerContext context_,
-			final RequestHandler handler_, final ServerRequest request_,
+			final RequestHandler handler_, final PooledServerRequest request_,
 			final RequestLogger logger_) {
 
 		context = context_;
@@ -93,10 +95,7 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		closed = false;
 		started = false;
 
-		content = Unpooled.buffer();
-		setContent(content);
-
-		out = new ByteBufOutputStream(content);
+		out = new ByteBufOutputStream(data());
 		writer = new OutputStreamWriter(out, charSet);
 
 		requestTime = System.currentTimeMillis();
@@ -125,7 +124,19 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 	@Override
 	public void sendRedirect(final String location) {
-		setHeader(HttpHeaders.Names.LOCATION, location);
+		headers().set(HttpHeaders.Names.LOCATION, location);
+	}
+
+	@Override
+	public PooledServerResponse setProtocolVersion(final HttpVersion version) {
+		super.setProtocolVersion(version);
+		return this;
+	}
+
+	@Override
+	public PooledServerResponse setStatus(final HttpResponseStatus status) {
+		super.setStatus(status);
+		return this;
 	}
 
 	@Override
@@ -141,62 +152,39 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 	@Override
 	public void setContentLength(final int length) {
-		setHeader(HttpHeaders.Names.CONTENT_LENGTH, length);
+		HttpHeaders.setContentLength(this, length);
 	}
 
 	@Override
 	public void setContentType(final String mimeType) {
-		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType);
+		headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeType);
 	}
 
 	@Override
-	public void setHeader(final String name, final Iterable<?> values) {
-
-		if (started) {
-			throw new IllegalStateException("Output has already started");
-		}
-
-		super.setHeader(name, values);
-
+	public boolean isChunkedEncoding() {
+		return HttpHeaders.isTransferEncodingChunked(this);
 	}
 
 	@Override
-	public void setHeader(final String name, final Object value) {
+	public void setChunkedEncoding(final boolean chunked) {
 
-		if (started) {
-			throw new IllegalStateException("Output has already started");
-		}
+		if (chunked != isChunkedEncoding()) {
 
-		super.setHeader(name, value);
+			if (chunked) {
 
-	}
+				HttpHeaders.setTransferEncodingChunked(this);
+				out = new HttpChunkOutputStream(context);
+				writer = new OutputStreamWriter(out, charSet);
 
-	@Override
-	public void setTransferEncoding(final HttpTransferEncoding encoding) {
+			} else {
 
-		final HttpTransferEncoding previous = getTransferEncoding();
+				HttpHeaders.removeTransferEncodingChunked(this);
+				out = new ByteBufOutputStream(data());
+				writer = new OutputStreamWriter(out, charSet);
 
-		if (previous == encoding) {
-			return;
-		}
-
-		if (encoding == HttpTransferEncoding.CHUNKED
-				|| encoding == HttpTransferEncoding.STREAMED) {
-
-			out = new HttpChunkOutputStream(context);
-			writer = new OutputStreamWriter(out, charSet);
-
-		} else {
-
-			content = Unpooled.buffer();
-			setContent(content);
-
-			out = new ByteBufOutputStream(content);
-			writer = new OutputStreamWriter(out, charSet);
+			}
 
 		}
-
-		super.setTransferEncoding(encoding);
 
 	}
 
@@ -259,15 +247,15 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		}
 
 		// Set headers
-		setHeader(HttpHeaders.Names.SET_COOKIE,
+		headers().set(HttpHeaders.Names.SET_COOKIE,
 				ServerCookieEncoder.encode(cookies));
 
-		if (getTransferEncoding() == HttpTransferEncoding.SINGLE) {
-			setContentLength(content.readableBytes());
+		if (!isChunkedEncoding()) {
+			setContentLength(data().readableBytes());
 		}
 
 		if (HttpHeaders.isKeepAlive(request)) {
-			setHeader(HttpHeaders.Names.CONNECTION,
+			headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
 		}
 
@@ -292,16 +280,15 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 				// don't cause unnecessary pipeline exceptions
 				if (context.channel().isOpen()) {
 
-					final HttpTransferEncoding te = getTransferEncoding();
-					if (te == HttpTransferEncoding.CHUNKED
-							|| te == HttpTransferEncoding.STREAMED) {
+					if (isChunkedEncoding()) {
 
 						if (!started) {
 							log.debug("Warning, empty response");
 							startResponse();
 						}
 
-						writeFuture = context.write(HttpChunk.LAST_CHUNK);
+						writeFuture =
+								context.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
 					} else {
 
@@ -357,9 +344,9 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 		// Only the first call does anything, no need to wait if lock fails
 		if (finishLock.tryLock()) {
 
-			try {
+			if (!closed) {
 
-				if (!closed) {
+				try {
 
 					closed = true;
 					finished = true;
@@ -372,16 +359,22 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 
 					// Clear resources
 					handler = null;
-					request = null;
 					context = null;
 
 					out = null;
 					writer = null;
 
+				} finally {
+
+					finishLock.unlock();
+
+					pool.makeAvailable(request);
+					request = null;
+
+					pool.makeAvailable(this);
+
 				}
 
-			} finally {
-				finishLock.unlock();
 			}
 
 		}
@@ -438,7 +431,7 @@ public class PooledServerResponse extends DefaultHttpResponse implements
 				startResponse();
 			}
 
-			final HttpChunk chunk = new DefaultHttpChunk(content);
+			final HttpContent chunk = new DefaultHttpContent(content);
 			context.write(chunk);
 
 		}

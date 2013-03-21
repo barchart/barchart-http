@@ -7,7 +7,7 @@
  */
 package com.barchart.http.server;
 
-import io.netty.channel.socket.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

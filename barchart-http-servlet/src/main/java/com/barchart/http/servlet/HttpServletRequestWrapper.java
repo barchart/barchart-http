@@ -152,7 +152,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String getProtocol() {
-		return request.getProtocolVersion().getText();
+		return request.getProtocolVersion().text();
 	}
 
 	@Override
@@ -286,14 +286,14 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String getHeader(final String name) {
-		return request.getHeader(name);
+		return request.headers().get(name);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getHeaders(final String name) {
 
-		final Iterator<String> iter = request.getHeaders(name).iterator();
+		final Iterator<String> iter = request.headers().getAll(name).iterator();
 
 		return new Enumeration() {
 
@@ -315,7 +315,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	@Override
 	public Enumeration getHeaderNames() {
 
-		final Iterator<String> iter = request.getHeaderNames().iterator();
+		final Iterator<String> iter = request.headers().names().iterator();
 
 		return new Enumeration() {
 
@@ -340,7 +340,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String getMethod() {
-		return request.getMethod().getName();
+		return request.getMethod().name();
 	}
 
 	@Override

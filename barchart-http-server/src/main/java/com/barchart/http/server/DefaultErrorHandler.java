@@ -25,7 +25,7 @@ public class DefaultErrorHandler implements ErrorHandler {
 
 	@Override
 	public void onError(final ServerRequest request,
-			final ServerResponse response, final Exception cause)
+			final ServerResponse response, final Throwable cause)
 			throws IOException {
 
 		if (cause != null) {

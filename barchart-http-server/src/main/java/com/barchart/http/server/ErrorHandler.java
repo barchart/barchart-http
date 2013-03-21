@@ -21,6 +21,6 @@ public interface ErrorHandler {
 	 * Called when an error occurs during a request.
 	 */
 	public void onError(final ServerRequest request,
-			final ServerResponse response, Exception cause) throws IOException;
+			final ServerResponse response, Throwable cause) throws IOException;
 
 }

@@ -10,6 +10,7 @@ package com.barchart.http.request;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,7 +26,14 @@ public interface ServerResponse extends ServerMessage, HttpResponse {
 	HttpResponseStatus getStatus();
 
 	@Override
-	void setStatus(HttpResponseStatus status);
+	ServerResponse setStatus(HttpResponseStatus status);
+
+	@Override
+	ServerResponse setProtocolVersion(HttpVersion version);
+
+	public boolean isChunkedEncoding();
+
+	public void setChunkedEncoding(final boolean chunked);
 
 	/**
 	 * Send a cookie to the client.

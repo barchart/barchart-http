@@ -24,14 +24,15 @@ import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpChunkAggregator;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * High performance HTTP server.
@@ -142,9 +143,10 @@ public class HttpServer {
 			final ChannelPipeline pipeline = ch.pipeline();
 
 			pipeline.addLast(new HttpResponseEncoder(), //
+					new ChunkedWriteHandler(), //
 					clientTracker, //
 					new HttpRequestDecoder(), //
-					new HttpChunkAggregator(65536), //
+					new HttpObjectAggregator(config.maxRequestSize()), //
 					// new MessageLoggingHandler(LogLevel.INFO), //
 					channelHandler);
 
@@ -167,15 +169,18 @@ public class HttpServer {
 			if (maxConnections > -1 && channelGroup.size() >= maxConnections) {
 
 				final ByteBuf content = Unpooled.buffer();
+
 				content.writeBytes("503 Service Unavailable - Server Too Busy"
 						.getBytes());
 
-				final HttpResponse response =
-						new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+				final FullHttpResponse response =
+						new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
 								HttpResponseStatus.SERVICE_UNAVAILABLE);
-				response.setContent(content);
-				response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+
+				response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 						content.readableBytes());
+
+				response.data().writeBytes(content);
 
 				context.write(response)
 						.addListener(ChannelFutureListener.CLOSE);
@@ -195,6 +200,12 @@ public class HttpServer {
 			channelGroup.remove(context.channel());
 			context.fireChannelInactive();
 
+		}
+
+		@Override
+		public void inboundBufferUpdated(final ChannelHandlerContext ctx)
+				throws Exception {
+			ctx.fireInboundBufferUpdated();
 		}
 
 	}

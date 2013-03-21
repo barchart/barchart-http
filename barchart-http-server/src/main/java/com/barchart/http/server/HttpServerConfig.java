@@ -8,7 +8,7 @@
 package com.barchart.http.server;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.socket.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.net.SocketAddress;
 import java.util.Comparator;
@@ -35,6 +35,7 @@ public class HttpServerConfig {
 
 	private SocketAddress address;
 	private int maxConnections = -1;
+	private int maxRequestSize = 65536;
 	private ErrorHandler errorHandler = new DefaultErrorHandler();
 	private RequestLogger requestLogger = new NullRequestLogger();
 	private EventLoopGroup parentGroup = new NioEventLoopGroup();
@@ -53,6 +54,15 @@ public class HttpServerConfig {
 	 */
 	public HttpServerConfig maxConnections(final int max) {
 		maxConnections = max;
+		return this;
+	}
+
+	/**
+	 * Set the maximum request size in bytes (file uploads, etc). Defaults to
+	 * 65536.
+	 */
+	public HttpServerConfig maxRequestSize(final int max) {
+		maxRequestSize = max;
 		return this;
 	}
 
@@ -128,6 +138,13 @@ public class HttpServerConfig {
 	 */
 	public int maxConnections() {
 		return maxConnections;
+	}
+
+	/**
+	 * Get the maximum request size in bytes.
+	 */
+	public int maxRequestSize() {
+		return maxRequestSize;
 	}
 
 	/**

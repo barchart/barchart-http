@@ -10,6 +10,7 @@ package com.barchart.http.request;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -30,6 +31,23 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	 */
 	@Override
 	public HttpMethod getMethod();
+
+	@Override
+	ServerRequest setProtocolVersion(HttpVersion version);
+
+	@Override
+	ServerRequest setMethod(HttpMethod method);
+
+	@Override
+	ServerRequest setUri(String uri);
+
+	public boolean isChunkedEncoding();
+
+	/**
+	 * The request URI
+	 */
+	@Override
+	public String getUri();
 
 	/**
 	 * The request query string.

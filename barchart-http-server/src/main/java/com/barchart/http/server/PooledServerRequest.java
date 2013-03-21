@@ -13,10 +13,9 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpTransferEncoding;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
@@ -29,7 +28,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.barchart.http.request.RequestAttribute;
@@ -38,13 +36,13 @@ import com.barchart.http.request.ServerRequest;
 
 public class PooledServerRequest implements ServerRequest {
 
-	private HttpRequest nettyRequest;
+	private FullHttpRequest nettyRequest;
 
 	private String baseUri;
 	private String pathInfo;
 	private String queryString;
-	private final InetSocketAddress local;
-	private final InetSocketAddress remote;
+	private InetSocketAddress local;
+	private InetSocketAddress remote;
 
 	private Map<String, List<String>> queryStringDecoded = null;
 	private Map<String, Cookie> cookies;
@@ -53,12 +51,14 @@ public class PooledServerRequest implements ServerRequest {
 
 	private String remoteUser = null;
 
-	public PooledServerRequest(final Channel channel) {
-		local = (InetSocketAddress) channel.localAddress();
-		remote = (InetSocketAddress) channel.remoteAddress();
+	public PooledServerRequest() {
 	}
 
-	void init(final HttpRequest nettyRequest_, final String relativeUri_) {
+	void init(final Channel channel_, final FullHttpRequest nettyRequest_,
+			final String relativeUri_) {
+
+		local = (InetSocketAddress) channel_.localAddress();
+		remote = (InetSocketAddress) channel_.remoteAddress();
 
 		nettyRequest = nettyRequest_;
 
@@ -95,13 +95,12 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public String getScheme() {
-		// XXX
-		throw new UnsupportedOperationException();
+		return isSecure() ? "https" : "http";
 	}
 
 	@Override
 	public String getServerHost() {
-		return getHeader(HttpHeaders.Names.HOST);
+		return HttpHeaders.getHost(nettyRequest);
 	}
 
 	@Override
@@ -116,12 +115,14 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public boolean isSecure() {
+		// No SSL support currently
 		return false;
 	}
 
 	@Override
 	public String getContentType() {
-		return nettyRequest.getHeader("Content-Type");
+		return HttpHeaders.getHeader(nettyRequest,
+				HttpHeaders.Names.CONTENT_TYPE);
 	}
 
 	@Override
@@ -145,7 +146,7 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public InputStream getInputStream() {
-		return new ByteBufInputStream(nettyRequest.getContent());
+		return new ByteBufInputStream(nettyRequest.data());
 	}
 
 	@Override
@@ -159,7 +160,7 @@ public class PooledServerRequest implements ServerRequest {
 
 		if (queryStringDecoded == null && queryString != null) {
 			queryStringDecoded =
-					new QueryStringDecoder(queryString, false).getParameters();
+					new QueryStringDecoder(queryString, false).parameters();
 		}
 
 		return queryStringDecoded;
@@ -205,7 +206,7 @@ public class PooledServerRequest implements ServerRequest {
 			cookies = new HashMap<String, Cookie>();
 
 			final Set<Cookie> cookieSet =
-					CookieDecoder.decode(nettyRequest.getHeader("Cookie"));
+					CookieDecoder.decode(nettyRequest.headers().get("Cookie"));
 
 			for (final Cookie cookie : cookieSet) {
 				cookies.put(cookie.getName(), cookie);
@@ -239,7 +240,7 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	/*
-	 * Delegate to HttpRequest
+	 * Delegate to FullHttpRequest
 	 */
 
 	@Override
@@ -248,8 +249,9 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	@Override
-	public void setMethod(final HttpMethod method) {
+	public ServerRequest setMethod(final HttpMethod method) {
 		nettyRequest.setMethod(method);
+		return this;
 	}
 
 	@Override
@@ -258,33 +260,14 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	@Override
-	public void setUri(final String uri) {
+	public ServerRequest setUri(final String uri) {
 		nettyRequest.setUri(uri);
+		return this;
 	}
 
 	@Override
-	public String getHeader(final String name) {
-		return nettyRequest.getHeader(name);
-	}
-
-	@Override
-	public List<String> getHeaders(final String name) {
-		return nettyRequest.getHeaders(name);
-	}
-
-	@Override
-	public List<Entry<String, String>> getHeaders() {
-		return nettyRequest.getHeaders();
-	}
-
-	@Override
-	public boolean containsHeader(final String name) {
-		return nettyRequest.containsHeader(name);
-	}
-
-	@Override
-	public Set<String> getHeaderNames() {
-		return nettyRequest.getHeaderNames();
+	public HttpHeaders headers() {
+		return nettyRequest.headers();
 	}
 
 	@Override
@@ -293,53 +276,18 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	@Override
-	public void setProtocolVersion(final HttpVersion version) {
+	public ServerRequest setProtocolVersion(final HttpVersion version) {
 		nettyRequest.setProtocolVersion(version);
+		return this;
 	}
 
-	@Override
 	public ByteBuf getContent() {
-		return nettyRequest.getContent();
+		return nettyRequest.data();
 	}
 
 	@Override
-	public void setContent(final ByteBuf content) {
-		nettyRequest.setContent(content);
-	}
-
-	@Override
-	public void addHeader(final String name, final Object value) {
-		nettyRequest.addHeader(name, value);
-	}
-
-	@Override
-	public void setHeader(final String name, final Object value) {
-		nettyRequest.setHeader(name, value);
-	}
-
-	@Override
-	public void setHeader(final String name, final Iterable<?> values) {
-		nettyRequest.setHeader(name, values);
-	}
-
-	@Override
-	public void removeHeader(final String name) {
-		nettyRequest.removeHeader(name);
-	}
-
-	@Override
-	public void clearHeaders() {
-		nettyRequest.clearHeaders();
-	}
-
-	@Override
-	public HttpTransferEncoding getTransferEncoding() {
-		return nettyRequest.getTransferEncoding();
-	}
-
-	@Override
-	public void setTransferEncoding(final HttpTransferEncoding te) {
-		nettyRequest.setTransferEncoding(te);
+	public boolean isChunkedEncoding() {
+		return HttpHeaders.isTransferEncodingChunked(nettyRequest);
 	}
 
 	@Override
