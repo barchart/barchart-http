@@ -7,6 +7,7 @@
  */
 package com.barchart.http.request;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -126,7 +127,7 @@ public interface ServerResponse extends ServerMessage, HttpResponse {
 	 * Mark this response as finished, and release any resources associated with
 	 * it.
 	 */
-	public void finish() throws IOException;
+	public ChannelFuture finish() throws IOException;
 
 	/**
 	 * Check if this response has been finished.

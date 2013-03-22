@@ -41,6 +41,8 @@ public class PooledServerRequest implements ServerRequest {
 	private String baseUri;
 	private String pathInfo;
 	private String queryString;
+
+	Channel channel;
 	private InetSocketAddress local;
 	private InetSocketAddress remote;
 
@@ -57,6 +59,7 @@ public class PooledServerRequest implements ServerRequest {
 	void init(final Channel channel_, final FullHttpRequest nettyRequest_,
 			final String relativeUri_) {
 
+		channel = channel_;
 		local = (InetSocketAddress) channel_.localAddress();
 		remote = (InetSocketAddress) channel_.remoteAddress();
 

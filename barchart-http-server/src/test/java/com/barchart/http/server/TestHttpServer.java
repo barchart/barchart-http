@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,20 +51,25 @@ public class TestHttpServer {
 	TestRequestHandler asyncDelayed;
 	TestRequestHandler clientDisconnect;
 	TestRequestHandler error;
+	TestRequestHandler channelError;
 
 	@Before
 	public void setUp() throws Exception {
 
 		server = new HttpServer();
 
-		basic = new TestRequestHandler("basic", false, 0, 0, false);
-		async = new TestRequestHandler("async", true, 0, 0, false);
+		basic = new TestRequestHandler("basic", false, 0, 0, false, false);
+		async = new TestRequestHandler("async", true, 0, 0, false, false);
 		asyncDelayed =
-				new TestRequestHandler("async-delayed", true, 50, 0, false);
+				new TestRequestHandler("async-delayed", true, 50, 0, false,
+						false);
 		clientDisconnect =
 				new TestRequestHandler("client-disconnect", true, 500, 500,
-						false);
-		error = new TestRequestHandler("error", false, 0, 0, true);
+						false, false);
+		error = new TestRequestHandler("error", false, 0, 0, true, false);
+		channelError =
+				new TestRequestHandler("channel-error", false, 0, 0, false,
+						true);
 
 		final HttpServerConfig config =
 				new HttpServerConfig().requestHandler("/basic", basic)
@@ -73,6 +79,7 @@ public class TestHttpServer {
 						.requestHandler("/async", async)
 						.requestHandler("/async-delayed", asyncDelayed)
 						.requestHandler("/client-disconnect", clientDisconnect)
+						.requestHandler("/channel-error", channelError)
 						.requestHandler("/error", error).maxConnections(1);
 
 		server.configure(config).listen().sync();
@@ -146,6 +153,19 @@ public class TestHttpServer {
 		final HttpGet get = new HttpGet("http://localhost:8888/error");
 		final HttpResponse response = client.execute(get);
 		assertEquals(500, response.getStatusLine().getStatusCode());
+
+	}
+
+	@Test
+	public void testMultipleRequests() throws Exception {
+
+		// New Beta3 was failing on second request due to shared buffer use
+		for (int i = 0; i < 100; i++) {
+			final HttpGet get = new HttpGet("http://localhost:8888/basic");
+			final HttpResponse response = client.execute(get);
+			assertEquals(200, response.getStatusLine().getStatusCode());
+			EntityUtils.consume(response.getEntity());
+		}
 
 	}
 
@@ -267,16 +287,18 @@ public class TestHttpServer {
 		protected long execTime = 0;
 		protected long writeTime = 0;
 		protected boolean error = false;
+		protected boolean disconnect = false;
 
 		TestRequestHandler(final String content_, final boolean async_,
 				final long execTime_, final long writeTime_,
-				final boolean error_) {
+				final boolean error_, final boolean disconnect_) {
 
 			content = content_;
 			async = async_;
 			execTime = execTime_;
 			writeTime = writeTime_;
 			error = error_;
+			disconnect = disconnect_;
 
 		}
 
@@ -307,6 +329,14 @@ public class TestHttpServer {
 
 					if (error) {
 						throw new RuntimeException("Uncaught exception");
+					}
+
+					if (disconnect) {
+						try {
+							response.finish().sync();
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 					try {

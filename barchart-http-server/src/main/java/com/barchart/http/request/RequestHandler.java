@@ -29,11 +29,15 @@ public interface RequestHandler {
 
 	/**
 	 * Called when the client disconnects before the response is completed.
+	 * Attempting to write to the response object after this method has been
+	 * called will always throw exceptions.
 	 */
 	public void onAbort(ServerRequest request, ServerResponse response);
 
 	/**
-	 * Called when the current request is completed.
+	 * Called when the current request is completed. This method will always be
+	 * called, even if the request is aborted or an exception is thrown, so
+	 * should not be taken as an indication of request success or failure.
 	 */
 	public void onComplete(ServerRequest request, ServerResponse response);
 

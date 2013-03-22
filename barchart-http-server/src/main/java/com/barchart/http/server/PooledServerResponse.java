@@ -32,14 +32,11 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.barchart.http.request.RequestHandler;
-import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
 /**
@@ -55,6 +52,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 	private final Collection<Cookie> cookies = new HashSet<Cookie>();
 
+	private HttpRequestChannelHandler channelHandler;
 	private ChannelHandlerContext context;
 	private RequestHandler handler;
 	private PooledServerRequest request;
@@ -62,14 +60,11 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 	private OutputStream out;
 	private Writer writer;
 
-	private final Lock finishLock = new ReentrantLock();
-
 	private Charset charSet = CharsetUtil.UTF_8;
 
 	private boolean suspended = false;
 	private boolean started = false;
 	private boolean finished = false;
-	private boolean closed = false;
 
 	private long requestTime = 0;
 	private RequestLogger logger;
@@ -80,10 +75,19 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 	}
 
 	void init(final ChannelHandlerContext context_,
+			final HttpRequestChannelHandler channelHandler_,
 			final RequestHandler handler_, final PooledServerRequest request_,
 			final RequestLogger logger_) {
 
+		// Clear outbound ByteBuf
+		data().clear();
+
+		// Reference count increment so underlying ByteBuf is not collected
+		// between requests
+		retain();
+
 		context = context_;
+		channelHandler = channelHandler_;
 		handler = handler_;
 		request = request_;
 		logger = logger_;
@@ -92,7 +96,6 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 		finished = false;
 		suspended = false;
-		closed = false;
 		started = false;
 
 		out = new ByteBufOutputStream(data());
@@ -266,61 +269,56 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 	}
 
 	@Override
-	public void finish() throws IOException {
+	public ChannelFuture finish() throws IOException {
 
-		if (finishLock.tryLock()) {
+		checkFinished();
 
-			checkFinished();
+		ChannelFuture writeFuture = null;
 
-			try {
+		// Handlers might call finish() on a cancelled/closed
+		// channel, don't cause unnecessary pipeline exceptions
+		if (context.channel().isOpen()) {
 
-				ChannelFuture writeFuture = null;
+			if (isChunkedEncoding()) {
 
-				// Handlers might call finish() on a cancelled/closed channel,
-				// don't cause unnecessary pipeline exceptions
-				if (context.channel().isOpen()) {
-
-					if (isChunkedEncoding()) {
-
-						if (!started) {
-							log.debug("Warning, empty response");
-							startResponse();
-						}
-
-						writeFuture =
-								context.write(LastHttpContent.EMPTY_LAST_CONTENT);
-
-					} else {
-
-						writeFuture = startResponse();
-
-					}
-
+				if (!started) {
+					log.debug("Warning, empty response");
+					startResponse();
 				}
 
-				// Mark finished before resetting suspended to avoid
-				// synchronization issue with channel handler auto-finish logic
-				finished = true;
-				suspended = false;
+				writeFuture = context.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
-				if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
-					writeFuture.addListener(ChannelFutureListener.CLOSE);
-				}
+			} else {
 
-				// Record to access log
-				logger.access(request, this, System.currentTimeMillis()
-						- requestTime);
+				writeFuture = startResponse();
 
-			} finally {
-				close();
 			}
 
-		} else {
+		}
 
+		close();
+
+		if (writeFuture != null && !HttpHeaders.isKeepAlive(request)) {
+			writeFuture.addListener(ChannelFutureListener.CLOSE);
+		}
+
+		// Record to access log
+		logger.access(request, this, System.currentTimeMillis() - requestTime);
+
+		// Keep alive, need to tell channel handler it can return us to the pool
+		if (HttpHeaders.isKeepAlive(request)) {
+			channelHandler.freeHandlers(context);
+		}
+
+		return writeFuture;
+
+	}
+
+	private void checkFinished() {
+		if (finished) {
 			throw new IllegalStateException(
 					"ServerResponse has already finished");
 		}
-
 	}
 
 	@Override
@@ -335,67 +333,23 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 	}
 
 	/**
-	 * Closes this request to future interaction. This method is thread-safe,
-	 * and calls the associated handler's onComplete() method, guaranteeing it
-	 * is only called once per request.
+	 * Closes this request to future interaction.
 	 */
 	void close() {
 
-		// Only the first call does anything, no need to wait if lock fails
-		if (finishLock.tryLock()) {
-
-			if (!closed) {
-
-				try {
-
-					closed = true;
-					finished = true;
-					suspended = false;
-					started = false;
-
-					if (handler != null) {
-						handler.onComplete(request, this);
-					}
-
-					// Clear resources
-					handler = null;
-					context = null;
-
-					out = null;
-					writer = null;
-
-				} finally {
-
-					finishLock.unlock();
-
-					pool.makeAvailable(request);
-					request = null;
-
-					pool.makeAvailable(this);
-
-				}
-
-			}
-
-		}
+		// Mark finished before resetting suspended to avoid synchronization
+		// issue with channel handler auto-finish logic
+		finished = true;
+		suspended = false;
 
 	}
 
-	ServerRequest request() {
+	PooledServerRequest request() {
 		return request;
 	}
 
 	RequestHandler handler() {
 		return handler;
-	}
-
-	private void checkFinished() {
-
-		if (finished) {
-			throw new IllegalStateException(
-					"ServerResponse has already finished");
-		}
-
 	}
 
 	/**
