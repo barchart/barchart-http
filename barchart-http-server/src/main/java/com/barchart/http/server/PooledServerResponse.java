@@ -79,8 +79,10 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			final RequestHandler handler_, final PooledServerRequest request_,
 			final RequestLogger logger_) {
 
-		// Clear outbound ByteBuf
+		// Default request values
 		data().clear();
+		headers().clear();
+		setStatus(HttpResponseStatus.OK);
 
 		// Reference count increment so underlying ByteBuf is not collected
 		// between requests
@@ -386,6 +388,8 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			}
 
 			final HttpContent chunk = new DefaultHttpContent(content);
+
+			// FIXME Why is this closing the connection in netty 4.0.0.Beta3?
 			context.write(chunk);
 
 		}
