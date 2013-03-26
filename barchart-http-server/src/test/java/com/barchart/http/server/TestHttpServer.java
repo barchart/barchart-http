@@ -35,12 +35,14 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
+@Ignore
 public class TestHttpServer {
 
 	HttpServer server;
