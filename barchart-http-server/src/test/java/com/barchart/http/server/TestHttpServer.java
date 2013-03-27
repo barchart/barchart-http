@@ -42,7 +42,6 @@ import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
-@Ignore
 public class TestHttpServer {
 
 	HttpServer server;
