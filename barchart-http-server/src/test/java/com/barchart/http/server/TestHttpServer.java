@@ -7,12 +7,6 @@
  */
 package com.barchart.http.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import io.netty.channel.nio.NioEventLoopGroup;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,23 +20,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.util.EntityUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
-@Ignore
 public class TestHttpServer {
 
 	HttpServer server;
@@ -62,27 +43,24 @@ public class TestHttpServer {
 
 		basic = new TestRequestHandler("basic", false, 0, 0, false, false);
 		async = new TestRequestHandler("async", true, 0, 0, false, false);
-		asyncDelayed =
-				new TestRequestHandler("async-delayed", true, 50, 0, false,
-						false);
-		clientDisconnect =
-				new TestRequestHandler("client-disconnect", true, 500, 500,
-						false, false);
+		asyncDelayed = new TestRequestHandler("async-delayed", true, 50, 0,
+				false, false);
+		clientDisconnect = new TestRequestHandler("client-disconnect", true,
+				500, 500, false, false);
 		error = new TestRequestHandler("error", false, 0, 0, true, false);
-		channelError =
-				new TestRequestHandler("channel-error", false, 0, 0, false,
-						true);
+		channelError = new TestRequestHandler("channel-error", false, 0, 0,
+				false, true);
 
-		final HttpServerConfig config =
-				new HttpServerConfig().requestHandler("/basic", basic)
-						.address(new InetSocketAddress("localhost", 8888))
-						.parentGroup(new NioEventLoopGroup(1))
-						.childGroup(new NioEventLoopGroup(1))
-						.requestHandler("/async", async)
-						.requestHandler("/async-delayed", asyncDelayed)
-						.requestHandler("/client-disconnect", clientDisconnect)
-						.requestHandler("/channel-error", channelError)
-						.requestHandler("/error", error).maxConnections(1);
+		final HttpServerConfig config = new HttpServerConfig()
+				.requestHandler("/basic", basic)
+				.address(new InetSocketAddress("localhost", 8888))
+				.parentGroup(new NioEventLoopGroup(1))
+				.childGroup(new NioEventLoopGroup(1))
+				.requestHandler("/async", async)
+				.requestHandler("/async-delayed", asyncDelayed)
+				.requestHandler("/client-disconnect", clientDisconnect)
+				.requestHandler("/channel-error", channelError)
+				.requestHandler("/error", error).maxConnections(1);
 
 		server.configure(config).listen().sync();
 
@@ -102,9 +80,8 @@ public class TestHttpServer {
 
 		final HttpGet get = new HttpGet("http://localhost:8888/basic");
 		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		final String content = new BufferedReader(new InputStreamReader(
+				response.getEntity().getContent())).readLine().trim();
 
 		assertEquals("basic", content);
 
@@ -115,9 +92,8 @@ public class TestHttpServer {
 
 		final HttpGet get = new HttpGet("http://localhost:8888/async");
 		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		final String content = new BufferedReader(new InputStreamReader(
+				response.getEntity().getContent())).readLine().trim();
 
 		assertNotNull(async.lastFuture);
 		assertFalse(async.lastFuture.isCancelled());
@@ -130,9 +106,8 @@ public class TestHttpServer {
 
 		final HttpGet get = new HttpGet("http://localhost:8888/async-delayed");
 		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		final String content = new BufferedReader(new InputStreamReader(
+				response.getEntity().getContent())).readLine().trim();
 
 		assertNotNull(asyncDelayed.lastFuture);
 		assertFalse(asyncDelayed.lastFuture.isCancelled());
@@ -180,9 +155,8 @@ public class TestHttpServer {
 			@Override
 			public void run() {
 				try {
-					final HttpResponse response =
-							client.execute(new HttpGet(
-									"http://localhost:8888/client-disconnect"));
+					final HttpResponse response = client.execute(new HttpGet(
+							"http://localhost:8888/client-disconnect"));
 					status.add(response.getStatusLine().getStatusCode());
 				} catch (final Exception e) {
 					e.printStackTrace();
@@ -208,8 +182,8 @@ public class TestHttpServer {
 	@Test
 	public void testShutdown() throws Exception {
 
-		final ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(1);
+		final ScheduledExecutorService executor = Executors
+				.newScheduledThreadPool(1);
 
 		final AtomicBoolean pass = new AtomicBoolean(false);
 
@@ -236,8 +210,8 @@ public class TestHttpServer {
 
 		}, 500, TimeUnit.MILLISECONDS);
 
-		final HttpGet get =
-				new HttpGet("http://localhost:8888/client-disconnect");
+		final HttpGet get = new HttpGet(
+				"http://localhost:8888/client-disconnect");
 		final HttpResponse response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		assertTrue(pass.get());
@@ -247,8 +221,8 @@ public class TestHttpServer {
 	@Test(expected = HttpHostConnectException.class)
 	public void testKill() throws Exception {
 
-		final ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(1);
+		final ScheduledExecutorService executor = Executors
+				.newScheduledThreadPool(1);
 
 		executor.schedule(new Runnable() {
 
@@ -259,8 +233,8 @@ public class TestHttpServer {
 
 		}, 500, TimeUnit.MILLISECONDS);
 
-		final HttpGet get =
-				new HttpGet("http://localhost:8888/client-disconnect");
+		final HttpGet get = new HttpGet(
+				"http://localhost:8888/client-disconnect");
 
 		// Should throw exception
 		client.execute(get);
@@ -314,8 +288,8 @@ public class TestHttpServer {
 
 			if (async) {
 				response.suspend();
-				lastFuture =
-						executor.schedule(task, execTime, TimeUnit.MILLISECONDS);
+				lastFuture = executor.schedule(task, execTime,
+						TimeUnit.MILLISECONDS);
 			} else {
 				task.run();
 			}
