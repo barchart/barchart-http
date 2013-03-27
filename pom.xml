@@ -76,22 +76,4 @@
 		</plugins>
 	</reporting>
 
-	<build>
-
-		<plugins>
-			<plugin>
-				<groupId>com.carrotgarden.maven</groupId>
-				<artifactId>carrot-maven-scr-plugin</artifactId>
-				<configuration>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>invalid</phase>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-
-	</build>
-
 </project>
