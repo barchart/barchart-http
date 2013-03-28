@@ -41,12 +41,22 @@ public class ServerMessagePool {
 
 	}
 
-	public PooledServerRequest getRequest() throws InterruptedException {
-		return requestPool.take();
+	/**
+	 * Get an available request object, or null if none are available.
+	 * 
+	 * @return A pooled request object
+	 */
+	public PooledServerRequest getRequest() {
+		return requestPool.poll();
 	}
 
-	public PooledServerResponse getResponse() throws InterruptedException {
-		return responsePool.take();
+	/**
+	 * Get an available response object, or null if none are available.
+	 * 
+	 * @return A pooled response object
+	 */
+	public PooledServerResponse getResponse() {
+		return responsePool.poll();
 	}
 
 	void makeAvailable(final PooledServerRequest request) {
