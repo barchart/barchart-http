@@ -17,6 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.barchart.http.auth.AuthorizationHandler;
+import com.barchart.http.error.DefaultErrorHandler;
+import com.barchart.http.error.ErrorHandler;
+import com.barchart.http.logging.NullRequestLogger;
+import com.barchart.http.logging.RequestLogger;
 import com.barchart.http.request.RequestHandler;
 import com.barchart.http.request.RequestHandlerFactory;
 import com.barchart.http.request.RequestHandlerMapping;

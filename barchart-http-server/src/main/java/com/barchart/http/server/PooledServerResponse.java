@@ -36,6 +36,7 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.barchart.http.logging.RequestLogger;
 import com.barchart.http.request.RequestHandler;
 import com.barchart.http.request.ServerResponse;
 
@@ -79,10 +80,12 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			final RequestHandler handler_, final PooledServerRequest request_,
 			final RequestLogger logger_) {
 
-		// Default request values
-		data().clear();
-		headers().clear();
-		setStatus(HttpResponseStatus.OK);
+		// Reset default request values if this is a recycled handler
+		if (finished) {
+			headers().clear();
+			data().clear();
+			setStatus(HttpResponseStatus.OK);
+		}
 
 		// Reference count increment so underlying ByteBuf is not collected
 		// between requests

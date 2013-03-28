@@ -2,6 +2,8 @@ package com.barchart.http.server;
 
 import java.util.concurrent.Callable;
 
+import com.barchart.http.util.ObjectPool;
+
 /**
  * HTTP request/response object pool for low-garbage request handling
  */

@@ -5,7 +5,7 @@
  *
  * http://www.opensource.org/licenses/bsd-license.php
  */
-package com.barchart.http.server;
+package com.barchart.http.error;
 
 import java.io.IOException;
 

@@ -7,13 +7,22 @@
  */
 package com.barchart.http.server;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
 
+import com.barchart.http.error.ServerException;
+import com.barchart.http.error.ServerTooBusyException;
 import com.barchart.http.request.RequestHandler;
 import com.barchart.http.request.RequestHandlerMapping;
 
@@ -55,6 +64,14 @@ public class HttpRequestChannelHandler extends
 
 		// Create request/response
 		final PooledServerRequest request = messagePool.getRequest();
+
+		// Handle 503 - sanity check, should be caught in acceptor
+		if (request == null) {
+			sendServerError(ctx, new ServerTooBusyException(
+					"Maximum concurrent connections reached"));
+			return;
+		}
+
 		request.init(ctx.channel(), msg, relativePath);
 
 		final RequestHandler handler = mapping.handler(request);
@@ -102,6 +119,14 @@ public class HttpRequestChannelHandler extends
 
 		// Create request/response
 		final PooledServerRequest request = messagePool.getRequest();
+
+		// Handle 503 - sanity check, should be caught in acceptor
+		if (request == null) {
+			sendServerError(ctx, new ServerTooBusyException(
+					"Maximum concurrent connections reached"));
+			return;
+		}
+
 		request.init(ctx.channel(), msg, msg.getUri());
 
 		final PooledServerResponse response = messagePool.getResponse();
@@ -127,6 +152,32 @@ public class HttpRequestChannelHandler extends
 			if (!response.isFinished() && !response.isSuspended()) {
 				response.finish();
 			}
+
+		}
+
+	}
+
+	private void sendServerError(final ChannelHandlerContext ctx,
+			final ServerException cause) throws Exception {
+
+		if (ctx.channel().isActive()) {
+
+			final ByteBuf content = Unpooled.buffer();
+
+			content.writeBytes((cause.getStatus().code() + " "
+					+ cause.getStatus().reasonPhrase() + " - " + cause
+					.getMessage()).getBytes());
+
+			final FullHttpResponse response =
+					new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+							cause.getStatus());
+
+			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
+					content.readableBytes());
+
+			response.data().writeBytes(content);
+
+			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 
 		}
 

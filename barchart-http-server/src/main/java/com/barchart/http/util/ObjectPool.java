@@ -1,4 +1,4 @@
-package com.barchart.http.server;
+package com.barchart.http.util;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
