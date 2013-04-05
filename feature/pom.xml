@@ -1,0 +1,122 @@
+<!-- Copyright (C) 2011-2013 Barchart, Inc. <http://www.barchart.com /> All 
+	rights reserved. Licensed under the OSI BSD License. http://www.opensource.org/licenses/bsd-license.php -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.barchart.http</groupId>
+		<artifactId>barchart-http-archon</artifactId>
+		<version>1.1.7-SNAPSHOT</version>
+		<relativePath>../archon</relativePath>
+	</parent>
+
+	<artifactId>barchart-http-feature</artifactId>
+	<version>1.1.8-SNAPSHOT</version>
+	<packaging>feature</packaging>
+
+	<description>
+<![CDATA[
+### ${project.artifactId}
+
+A lightweight, high performance, asynchronous HTTP server built on top of Netty 4.
+
+Project documentation: https://github.com/barchart/barchart-http/wiki
+]]>
+	</description>
+
+	<url>https://github.com/barchart/barchart-http</url>
+
+	<issueManagement>
+		<system>github</system>
+		<url>https://github.com/barchart/barchart-http/issues</url>
+	</issueManagement>
+
+	<scm>
+		<url>https://github.com/barchart/barchart-http</url>
+		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
+		<tag>master</tag>
+	</scm>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.barchart.http</groupId>
+			<artifactId>barchart-http-server</artifactId>
+			<version>1.1.8-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.barchart.http</groupId>
+			<artifactId>barchart-http-servlet</artifactId>
+			<version>1.1.8-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.barchart.http</groupId>
+			<artifactId>barchart-http-handlers</artifactId>
+			<version>1.1.8-SNAPSHOT</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.karaf.tooling</groupId>
+				<artifactId>karaf-maven-plugin</artifactId>
+				<version>3.0.0.RC1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<installMode>auto</installMode>
+					<startLevel>90</startLevel>
+				</configuration>
+			</plugin>
+
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.karaf.tooling
+										</groupId>
+										<artifactId>
+											karaf-maven-plugin
+										</artifactId>
+										<versionRange>
+											[3.0.0.RC1,)
+										</versionRange>
+										<goals>
+											<goal>
+												features-generate-descriptor
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
