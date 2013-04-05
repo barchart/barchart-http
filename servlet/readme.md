@@ -1,4 +1,4 @@
-### barchart-http
+### barchart-http-servlet
 
 A lightweight, high performance, asynchronous HTTP server built on top of Netty 4.
 
