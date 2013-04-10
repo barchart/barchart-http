@@ -17,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -35,7 +37,6 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.barchart.http.request.RequestHandlerBase;
@@ -154,6 +155,28 @@ public class TestHttpServer {
 		final HttpGet get = new HttpGet("http://localhost:8888/error");
 		final HttpResponse response = client.execute(get);
 		assertEquals(500, response.getStatusLine().getStatusCode());
+
+	}
+
+	@Test
+	public void testReuseRequest() throws Exception {
+
+		// Parameters were being remembered between requests in pooled objects
+		HttpGet get = new HttpGet("http://localhost:8888/basic?field=value");
+		HttpResponse response = client.execute(get);
+		assertEquals(200, response.getStatusLine().getStatusCode());
+		EntityUtils.consume(response.getEntity());
+
+		assertEquals(1, basic.parameters.get("field").size());
+		assertEquals("value", basic.parameters.get("field").get(0));
+
+		get = new HttpGet("http://localhost:8888/basic?field=value2");
+		response = client.execute(get);
+		assertEquals(200, response.getStatusLine().getStatusCode());
+		EntityUtils.consume(response.getEntity());
+
+		assertEquals(1, basic.parameters.get("field").size());
+		assertEquals("value2", basic.parameters.get("field").get(0));
 
 	}
 
@@ -290,6 +313,8 @@ public class TestHttpServer {
 		protected boolean error = false;
 		protected boolean disconnect = false;
 
+		protected Map<String, List<String>> parameters;
+
 		TestRequestHandler(final String content_, final boolean async_,
 				final long execTime_, final long writeTime_,
 				final boolean error_, final boolean disconnect_) {
@@ -308,6 +333,8 @@ public class TestHttpServer {
 				final ServerResponse response) throws IOException {
 
 			requests.incrementAndGet();
+
+			parameters = request.getParameters();
 
 			final Runnable task = response(response);
 

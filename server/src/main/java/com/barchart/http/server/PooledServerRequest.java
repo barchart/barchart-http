@@ -77,7 +77,13 @@ public class PooledServerRequest implements ServerRequest {
 			queryString = baseUri.substring(q + 1);
 		}
 
+		// Reset previous state
+		queryStringDecoded = null;
+		cookies = null;
+		attributes = null;
+
 		// TODO check user authentication
+		remoteUser = null;
 
 	}
 
