@@ -277,7 +277,7 @@ public class TestHttpServer {
 
 			}
 
-		}, 500, TimeUnit.MILLISECONDS);
+		}, 1000, TimeUnit.MILLISECONDS);
 
 		final HttpGet get =
 				new HttpGet("http://localhost:" + port + "/client-disconnect");
