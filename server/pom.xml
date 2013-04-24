@@ -34,6 +34,15 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 
 	<dependencies>
 
+		<!-- MJS: This is a dependency to get to reuse some test classes of barchart-session-test -->
+		<dependency>
+			<groupId>com.barchart.session</groupId>
+			<artifactId>barchart-session-test</artifactId>
+			<scope>test</scope>
+			<version>1.0.12-SNAPSHOT</version>
+			<classifier>tests</classifier>
+		</dependency>
+
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-common</artifactId>

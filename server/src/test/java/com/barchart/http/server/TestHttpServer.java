@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -38,22 +39,29 @@ import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
+import com.barchart.session.host.MultiThreadedRunner;
 
+// MJS: We run it in parallel to stress the server more and also to take advantage of multiple cores for speed
+@RunWith(MultiThreadedRunner.class)
 public class TestHttpServer {
 
-	HttpServer server;
-	HttpClient client;
+	private HttpServer server;
+	private HttpClient client;
 
-	TestRequestHandler basic;
-	TestRequestHandler async;
-	TestRequestHandler asyncDelayed;
-	TestRequestHandler clientDisconnect;
-	TestRequestHandler error;
-	TestRequestHandler channelError;
+	// MJS: We need separate ports since we run in parallel
+	private int port;
+
+	private TestRequestHandler basic;
+	private TestRequestHandler async;
+	private TestRequestHandler asyncDelayed;
+	private TestRequestHandler clientDisconnect;
+	private TestRequestHandler error;
+	private TestRequestHandler channelError;
 
 	@Before
 	public void setUp() throws Exception {
@@ -73,9 +81,17 @@ public class TestHttpServer {
 				new TestRequestHandler("channel-error", false, 0, 0, false,
 						true);
 
+		try {
+			final ServerSocket s = new ServerSocket(0);
+			port = s.getLocalPort();
+
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+
 		final HttpServerConfig config =
 				new HttpServerConfig().requestHandler("/basic", basic)
-						.address(new InetSocketAddress("localhost", 8888))
+						.address(new InetSocketAddress("localhost", port))
 						.parentGroup(new NioEventLoopGroup(1))
 						.childGroup(new NioEventLoopGroup(1))
 						.requestHandler("/async", async)
@@ -100,7 +116,7 @@ public class TestHttpServer {
 	@Test
 	public void testBasicRequest() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:8888/basic");
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/basic");
 		final HttpResponse response = client.execute(get);
 		final String content =
 				new BufferedReader(new InputStreamReader(response.getEntity()
@@ -113,7 +129,7 @@ public class TestHttpServer {
 	@Test
 	public void testAsyncRequest() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:8888/async");
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/async");
 		final HttpResponse response = client.execute(get);
 		final String content =
 				new BufferedReader(new InputStreamReader(response.getEntity()
@@ -128,7 +144,8 @@ public class TestHttpServer {
 	@Test
 	public void testAsyncDelayedRequest() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:8888/async-delayed");
+		final HttpGet get =
+				new HttpGet("http://localhost:" + port + "/async-delayed");
 		final HttpResponse response = client.execute(get);
 		final String content =
 				new BufferedReader(new InputStreamReader(response.getEntity()
@@ -143,7 +160,8 @@ public class TestHttpServer {
 	@Test
 	public void testUnknownHandler() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:8888/unknown");
+		final HttpGet get =
+				new HttpGet("http://localhost:" + port + "/unknown");
 		final HttpResponse response = client.execute(get);
 		assertEquals(404, response.getStatusLine().getStatusCode());
 
@@ -152,7 +170,7 @@ public class TestHttpServer {
 	@Test
 	public void testServerError() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:8888/error");
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/error");
 		final HttpResponse response = client.execute(get);
 		assertEquals(500, response.getStatusLine().getStatusCode());
 
@@ -162,7 +180,8 @@ public class TestHttpServer {
 	public void testReuseRequest() throws Exception {
 
 		// Parameters were being remembered between requests in pooled objects
-		HttpGet get = new HttpGet("http://localhost:8888/basic?field=value");
+		HttpGet get =
+				new HttpGet("http://localhost:" + port + "/basic?field=value");
 		HttpResponse response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		EntityUtils.consume(response.getEntity());
@@ -170,7 +189,7 @@ public class TestHttpServer {
 		assertEquals(1, basic.parameters.get("field").size());
 		assertEquals("value", basic.parameters.get("field").get(0));
 
-		get = new HttpGet("http://localhost:8888/basic?field=value2");
+		get = new HttpGet("http://localhost:" + port + "/basic?field=value2");
 		response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		EntityUtils.consume(response.getEntity());
@@ -185,7 +204,8 @@ public class TestHttpServer {
 
 		// New Beta3 was failing on second request due to shared buffer use
 		for (int i = 0; i < 100; i++) {
-			final HttpGet get = new HttpGet("http://localhost:8888/basic");
+			final HttpGet get =
+					new HttpGet("http://localhost:" + port + "/basic");
 			final HttpResponse response = client.execute(get);
 			assertEquals(200, response.getStatusLine().getStatusCode());
 			EntityUtils.consume(response.getEntity());
@@ -203,8 +223,8 @@ public class TestHttpServer {
 			public void run() {
 				try {
 					final HttpResponse response =
-							client.execute(new HttpGet(
-									"http://localhost:8888/client-disconnect"));
+							client.execute(new HttpGet("http://localhost:"
+									+ port + "/client-disconnect"));
 					status.add(response.getStatusLine().getStatusCode());
 				} catch (final Exception e) {
 					e.printStackTrace();
@@ -247,7 +267,8 @@ public class TestHttpServer {
 				}
 
 				try {
-					client.execute(new HttpGet("http://localhost:8888/basic"));
+					client.execute(new HttpGet("http://localhost:" + port
+							+ "/basic"));
 				} catch (final HttpHostConnectException hhce) {
 					pass.set(true);
 				} catch (final Exception e) {
@@ -259,7 +280,7 @@ public class TestHttpServer {
 		}, 500, TimeUnit.MILLISECONDS);
 
 		final HttpGet get =
-				new HttpGet("http://localhost:8888/client-disconnect");
+				new HttpGet("http://localhost:" + port + "/client-disconnect");
 		final HttpResponse response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		assertTrue(pass.get());
@@ -282,7 +303,7 @@ public class TestHttpServer {
 		}, 500, TimeUnit.MILLISECONDS);
 
 		final HttpGet get =
-				new HttpGet("http://localhost:8888/client-disconnect");
+				new HttpGet("http://localhost:" + port + "/client-disconnect");
 
 		// Should throw exception
 		client.execute(get);
