@@ -47,12 +47,6 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 
 	}
 
-	public interface Authenticator {
-
-		public boolean authenticate(String username, String password);
-
-	}
-
 	// MJS: Basic doesn't require a challenge
 
 	@Override
