@@ -53,4 +53,11 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 
 	}
 
+	// MJS: Basic doesn't require a challenge
+
+	@Override
+	public String getAuthenticateHeader(String data) {
+		return null;
+	}
+
 }

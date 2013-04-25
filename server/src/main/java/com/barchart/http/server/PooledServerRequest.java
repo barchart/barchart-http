@@ -34,6 +34,12 @@ import com.barchart.http.request.RequestAttribute;
 import com.barchart.http.request.RequestAttributeKey;
 import com.barchart.http.request.ServerRequest;
 
+/**
+ * Implements a server request from a low garbage collection use pool
+ * 
+ * author: andrei, jeremy, maurycy
+ * 
+ */
 public class PooledServerRequest implements ServerRequest {
 
 	private FullHttpRequest nettyRequest;
@@ -42,7 +48,6 @@ public class PooledServerRequest implements ServerRequest {
 	private String pathInfo;
 	private String queryString;
 
-	Channel channel;
 	private InetSocketAddress local;
 	private InetSocketAddress remote;
 
@@ -59,7 +64,6 @@ public class PooledServerRequest implements ServerRequest {
 	void init(final Channel channel_, final FullHttpRequest nettyRequest_,
 			final String relativeUri_) {
 
-		channel = channel_;
 		local = (InetSocketAddress) channel_.localAddress();
 		remote = (InetSocketAddress) channel_.remoteAddress();
 
@@ -82,9 +86,9 @@ public class PooledServerRequest implements ServerRequest {
 		cookies = null;
 		attributes = null;
 
-		// TODO check user authentication
+		// MJs: This will be used for remote authentication using BASIC or
+		// DIGEST
 		remoteUser = null;
-
 	}
 
 	@Override

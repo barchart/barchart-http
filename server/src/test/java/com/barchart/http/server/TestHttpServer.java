@@ -126,6 +126,20 @@ public class TestHttpServer {
 
 	}
 
+	// MJS: TBD
+	@Test
+	public void testBasicAuthorization() throws Exception {
+
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/basic");
+		final HttpResponse response = client.execute(get);
+		final String content =
+				new BufferedReader(new InputStreamReader(response.getEntity()
+						.getContent())).readLine().trim();
+
+		assertEquals("basic", content);
+
+	}
+
 	@Test
 	public void testAsyncRequest() throws Exception {
 

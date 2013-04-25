@@ -15,6 +15,12 @@ public interface AuthorizationHandler {
 	public String getMethod();
 
 	/**
+	 * If applicable gets the challenge to be included in a 401 response to
+	 * access for a protected resource
+	 */
+	public String getAuthenticateHeader(String data);
+
+	/**
 	 * Attempt to authorize the user with the given authorization data and
 	 * return the remote user associated with it. If no authorization succeeds,
 	 * this method will return null.
