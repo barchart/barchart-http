@@ -37,7 +37,7 @@ import com.barchart.http.request.ServerRequest;
 /**
  * Implements a server request from a low garbage collection use pool
  * 
- * author: andrei, jeremy, maurycy
+ * author: andrei, jeremy
  * 
  */
 public class PooledServerRequest implements ServerRequest {

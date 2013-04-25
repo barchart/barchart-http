@@ -63,6 +63,10 @@ public class TestHttpServer {
 	private TestRequestHandler error;
 	private TestRequestHandler channelError;
 
+	// MJS: Basic and digest authentication
+	private BasicAuthRequestHandler basicauth;
+	private DigestAuthRequestHandler digestauth;
+
 	@Before
 	public void setUp() throws Exception {
 
@@ -98,7 +102,13 @@ public class TestHttpServer {
 						.requestHandler("/async-delayed", asyncDelayed)
 						.requestHandler("/client-disconnect", clientDisconnect)
 						.requestHandler("/channel-error", channelError)
-						.requestHandler("/error", error).maxConnections(1);
+						.requestHandler("/error", error).maxConnections(1)
+
+						// MJS: Basic authentication
+						.requestHandler("/basicauth", basicauth)
+
+						// MJS: Digest authentication
+						.requestHandler("/digestauth", digestauth);
 
 		server.configure(config).listen().sync();
 
@@ -329,6 +339,28 @@ public class TestHttpServer {
 	public void testRepeated() throws Exception {
 		for (int i = 0; i < 10000; i++) {
 			testAsyncRequest();
+		}
+	}
+
+	// MJS: Testing basic authentication
+	private class BasicAuthRequestHandler extends RequestHandlerBase {
+
+		@Override
+		public void onRequest(ServerRequest request, ServerResponse response)
+				throws IOException {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	// MJS: Testing digest authentication
+	private class DigestAuthRequestHandler extends RequestHandlerBase {
+
+		@Override
+		public void onRequest(ServerRequest request, ServerResponse response)
+				throws IOException {
+			// TODO Auto-generated method stub
+
 		}
 	}
 
