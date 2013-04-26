@@ -55,4 +55,9 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 		return null;
 	}
 
+	@Override
+	public void setRequestBody(String requestBody) {
+		// TODO Auto-generated method stub
+
+	}
 }

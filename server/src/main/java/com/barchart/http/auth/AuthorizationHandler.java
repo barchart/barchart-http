@@ -7,6 +7,7 @@
  */
 package com.barchart.http.auth;
 
+
 public interface AuthorizationHandler {
 
 	/**
@@ -19,6 +20,15 @@ public interface AuthorizationHandler {
 	 * access for a protected resource
 	 */
 	public String getAuthenticateHeader(String data);
+
+	/**
+	 * 
+	 * @param requestBody
+	 * 
+	 *            Some schema require a request body to be added in
+	 * 
+	 */
+	public void setRequestBody(String requestBody);
 
 	/**
 	 * Attempt to authorize the user with the given authorization data and

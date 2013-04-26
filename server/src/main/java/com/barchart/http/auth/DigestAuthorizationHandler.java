@@ -111,6 +111,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	 * @param requestBody
 	 *            the requestBody to set
 	 */
+	@Override
 	public void setRequestBody(String requestBody) {
 		this.requestBody = requestBody;
 	}
@@ -135,7 +136,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 		String reqURI = headerValues.get("uri");
 
-		if (!qop.isEmpty() && qop.equals("auth-int")) {
+		if (qop != null && !qop.isEmpty() && qop.equals("auth-int")) {
 			String entityBodyMd5 = DigestUtils.md5Hex(requestBody);
 			ha2 =
 					DigestUtils.md5Hex(getMethod() + ":" + reqURI + ":"
@@ -146,7 +147,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 		String serverResponse;
 
-		if (qop.isEmpty()) {
+		if (qop == null || qop.isEmpty()) {
 			serverResponse = DigestUtils.md5Hex(ha1 + ":" + nonce + ":" + ha2);
 
 		} else {
@@ -161,7 +162,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 		String clientResponse = headerValues.get("response");
 
 		// MJS: Since the password is already hashed
-		if (!serverResponse.equals(clientResponse))
+		if (serverResponse.equals(clientResponse))
 			return clientResponse;
 
 		return null;
@@ -178,5 +179,4 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 		return header;
 	}
-
 }

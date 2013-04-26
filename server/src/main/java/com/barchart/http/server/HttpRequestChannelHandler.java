@@ -75,9 +75,15 @@ public class HttpRequestChannelHandler extends
 			if (authHeader == null
 					|| (authorization =
 							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null
-					|| authorization.authorize(authHeader) == null) {
+									"Authorization"))) == null) {
 
+				sendNotFound(ctx, msg);
+				return;
+			}
+
+			authorization.setRequestBody(msg.toString());
+
+			if (authorization.authorize(authHeader) == null) {
 				sendNotFound(ctx, msg);
 				return;
 			}

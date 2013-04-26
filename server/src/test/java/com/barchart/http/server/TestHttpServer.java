@@ -29,23 +29,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.DigestScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.barchart.http.auth.Authenticator;
 import com.barchart.http.auth.BasicAuthorizationHandler;
+import com.barchart.http.auth.DigestAuthorizationHandler;
 import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
@@ -143,8 +150,7 @@ public class TestHttpServer {
 	@Test
 	public void testBasicAuthorization() throws Exception {
 
-		// MJS: We add a BASIC authentication requirement and also 3 possible
-		// connections since we are doing 3 very fast tests below
+		// MJS: We add a BASIC authentication requirement
 		server.config().authorizationHandler(
 				new BasicAuthorizationHandler(testAuthenticator));
 
@@ -194,6 +200,55 @@ public class TestHttpServer {
 			// TBD - the server returns 503!!!
 			// assertEquals(404, response.getStatusLine().getStatusCode());
 		}
+	}
+
+	// MJS: Here we test the Digest authentication scheme
+	@Test
+	public void testDigestAuthentication() throws Exception {
+
+		// MJS: We add a DIGEST authentication requirement
+		server.config().authorizationHandler(
+				new DigestAuthorizationHandler(testAuthenticator));
+
+		HttpHost targetHost = new HttpHost("localhost", port, "http");
+
+		final String userName = "aaa";
+		final String password = "bbb";
+
+		DefaultHttpClient client = new DefaultHttpClient();
+
+		client.getCredentialsProvider().setCredentials(
+				new AuthScope("localhost", port),
+				new UsernamePasswordCredentials(userName, password));
+
+		// Create AuthCache instance
+		AuthCache authCache = new BasicAuthCache();
+
+		// Generate DIGEST scheme object, initialize it and add it to the local
+		// auth cache
+		DigestScheme digestAuth = new DigestScheme();
+
+		// Suppose we already know the realm name
+		digestAuth.overrideParamter("realm", "barchart.com");
+
+		// Suppose we already know the expected nonce value
+		digestAuth.overrideParamter("nonce", "whatever");
+
+		authCache.put(targetHost, digestAuth);
+
+		// Add AuthCache to the execution context
+		BasicHttpContext localcontext = new BasicHttpContext();
+		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+		HttpGet httpget = new HttpGet("http://localhost:" + port + "/basic");
+
+		final HttpResponse response =
+				client.execute(targetHost, httpget, localcontext);
+
+		final String content =
+				new BufferedReader(new InputStreamReader(response.getEntity()
+						.getContent())).readLine().trim();
+		assertEquals("basic", content);
 	}
 
 	@Test
@@ -405,13 +460,6 @@ public class TestHttpServer {
 			return null;
 		}
 
-	}
-
-	// MJS: TBD
-	@Ignore
-	@Test
-	public void testDigestAuthentication() throws Exception {
-		client.execute(new HttpGet("http://localhost:" + port + "/digestauth"));
 	}
 
 	private class TestRequestHandler extends RequestHandlerBase {
