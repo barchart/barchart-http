@@ -33,8 +33,9 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 
 		try {
 
+			final String[] structure = data.split(" ");
 			final String[] userpass =
-					new String(Base64.decode(data)).split(":");
+					new String(Base64.decode(structure[1])).split(":");
 
 			if (authenticator.authenticate(userpass[0], userpass[1])) {
 				return userpass[0];

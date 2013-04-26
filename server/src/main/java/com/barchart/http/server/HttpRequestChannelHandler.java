@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
 
+import com.barchart.http.auth.AuthorizationHandler;
 import com.barchart.http.error.ServerException;
 import com.barchart.http.error.ServerTooBusyException;
 import com.barchart.http.request.RequestHandler;
@@ -50,13 +51,36 @@ public class HttpRequestChannelHandler extends
 	public void messageReceived(final ChannelHandlerContext ctx,
 			final FullHttpRequest msg) throws Exception {
 
-		// Create request handler
+		// MJS: Here we gather the request handler and also determine if
+		// authentication is taking place and
+		// we issue either a 404 or a 401 challenge if the message doesn't
+		// contain any authorization response
 		final RequestHandlerMapping mapping =
 				config.getRequestMapping(msg.getUri());
 
 		if (mapping == null) {
 			sendNotFound(ctx, msg);
 			return;
+		}
+
+		if (config.getAuthorizationHandler("BASIC") != null
+				|| config.getAuthorizationHandler("DIGEST") != null) {
+
+			// MJS: Do we have authorization on this server?
+			AuthorizationHandler authorization = null;
+			final String authHeader = msg.headers().get("Authorization");
+
+			// MJS: No authorization header or one not matched by an existing
+			// handler? no go
+			if (authHeader == null
+					|| (authorization =
+							config.getAuthorizationHandler(msg.headers().get(
+									"Authorization"))) == null
+					|| authorization.authorize(authHeader) == null) {
+
+				sendNotFound(ctx, msg);
+				return;
+			}
 		}
 
 		final String relativePath =

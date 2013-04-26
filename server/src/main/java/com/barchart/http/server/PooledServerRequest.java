@@ -58,9 +58,21 @@ public class PooledServerRequest implements ServerRequest {
 
 	private String remoteUser = null;
 
+	// MJS: Added if we encounter an Authorization header in the request
+	private String authenticationMethod = null;
+
+	/**
+	 * @return the authenticationMethod
+	 */
+	public String getAuthenticationMethod() {
+		return authenticationMethod;
+	}
+
 	public PooledServerRequest() {
 	}
 
+	// MJS: Here we determine if we also need authentication if we have attached
+	// authentication handlers
 	void init(final Channel channel_, final FullHttpRequest nettyRequest_,
 			final String relativeUri_) {
 
@@ -68,6 +80,19 @@ public class PooledServerRequest implements ServerRequest {
 		remote = (InetSocketAddress) channel_.remoteAddress();
 
 		nettyRequest = nettyRequest_;
+
+		// MJS: Once we have the request we can also see if we have an
+		// authentication response attached to it
+		String authHeader = nettyRequest.headers().get("Authorization");
+
+		if (authHeader != null) {
+
+			if (authHeader.startsWith("Basic"))
+				authenticationMethod = "Basic";
+
+			else if (authHeader.startsWith("Digest"))
+				authenticationMethod = "Digest";
+		}
 
 		baseUri = relativeUri_;
 
@@ -86,8 +111,6 @@ public class PooledServerRequest implements ServerRequest {
 		cookies = null;
 		attributes = null;
 
-		// MJs: This will be used for remote authentication using BASIC or
-		// DIGEST
 		remoteUser = null;
 	}
 
