@@ -198,7 +198,7 @@ public class TestHttpServer {
 			final HttpResponse response = client.execute(get);
 
 			// TBD - the server returns 503!!!
-			// assertEquals(404, response.getStatusLine().getStatusCode());
+			assertEquals(404, response.getStatusLine().getStatusCode());
 		}
 	}
 
@@ -502,6 +502,8 @@ public class TestHttpServer {
 			parameters = request.getParameters();
 
 			final Runnable task = response(response);
+
+			// response.setChunkedEncoding(true);
 
 			if (async) {
 				response.suspend();

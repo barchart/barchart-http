@@ -391,9 +391,15 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			}
 
 			final HttpContent chunk = new DefaultHttpContent(content);
-
-			// FIXME Why is this closing the connection in netty 4.0.0.Beta3?
 			context.write(chunk);
+
+			// MJS: In order for chunks to be handled by the ChunkedWriteHandler
+			// we need to use a ChunkedInput wrapping the necessary bytes
+			// i.e
+			// http://netty.io/4.0/api/io/netty/handler/stream/ChunkedWriteHandler.html
+
+			// context.write(new ChunkedStream(new
+			// ByteBufInputStream(content)));
 
 		}
 
