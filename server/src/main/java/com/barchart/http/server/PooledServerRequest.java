@@ -182,7 +182,7 @@ public class PooledServerRequest implements ServerRequest {
 
 	@Override
 	public InputStream getInputStream() {
-		return new ByteBufInputStream(nettyRequest.data());
+		return new ByteBufInputStream(nettyRequest.content());
 	}
 
 	@Override
@@ -318,7 +318,7 @@ public class PooledServerRequest implements ServerRequest {
 	}
 
 	public ByteBuf getContent() {
-		return nettyRequest.data();
+		return nettyRequest.content();
 	}
 
 	@Override

@@ -83,7 +83,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 		// Reset default request values if this is a recycled handler
 		if (finished) {
 			headers().clear();
-			data().clear();
+			content().clear();
 			setStatus(HttpResponseStatus.OK);
 		}
 
@@ -103,7 +103,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 		suspended = false;
 		started = false;
 
-		out = new ByteBufOutputStream(data());
+		out = new ByteBufOutputStream(content());
 		writer = new OutputStreamWriter(out, charSet);
 
 		requestTime = System.currentTimeMillis();
@@ -187,7 +187,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			} else {
 
 				HttpHeaders.removeTransferEncodingChunked(this);
-				out = new ByteBufOutputStream(data());
+				out = new ByteBufOutputStream(content());
 				writer = new OutputStreamWriter(out, charSet);
 
 			}
@@ -259,7 +259,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 				ServerCookieEncoder.encode(cookies));
 
 		if (!isChunkedEncoding()) {
-			setContentLength(data().readableBytes());
+			setContentLength(content().readableBytes());
 		}
 
 		if (HttpHeaders.isKeepAlive(request)) {

@@ -205,7 +205,7 @@ public class HttpRequestChannelHandler extends
 			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 					content.readableBytes());
 
-			response.data().writeBytes(content);
+			response.content().writeBytes(content);
 
 			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 

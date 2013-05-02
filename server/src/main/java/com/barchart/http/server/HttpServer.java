@@ -180,7 +180,7 @@ public class HttpServer {
 				response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 						content.readableBytes());
 
-				response.data().writeBytes(content);
+				response.content().writeBytes(content);
 
 				context.write(response)
 						.addListener(ChannelFutureListener.CLOSE);
