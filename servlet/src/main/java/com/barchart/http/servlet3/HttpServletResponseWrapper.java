@@ -22,8 +22,11 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @version $Revision: 1.25 $ $Date: 2010/10/25 20:36:52 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
-public class BarchartServletResponse implements HttpServletResponse {
+public class HttpServletResponseWrapper implements HttpServletResponse {
 
 	/**
 	 * The content type of the result. Initially <code>null</code>.
@@ -60,7 +63,7 @@ public class BarchartServletResponse implements HttpServletResponse {
 	/**
 	 * Creates a new instance of <code>XINSServletResponse</code>.
 	 */
-	public BarchartServletResponse() {
+	public HttpServletResponseWrapper() {
 	}
 
 	@Override

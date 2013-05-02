@@ -142,7 +142,7 @@ public class LocalServletHandler {
 	 * @throws IOException
 	 *             If the query is not handled correctly by the servlet.
 	 */
-	public BarchartServletResponse query(String url) throws IOException {
+	public HttpServletResponseWrapper query(String url) throws IOException {
 		return query("GET", url, null, new HashMap());
 	}
 
@@ -172,15 +172,18 @@ public class LocalServletHandler {
 	 *             If the query is not handled correctly by the servlet.
 	 * 
 	 * @since XINS 1.5.0
+	 * 
+	 * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+	 * 
 	 */
-	public BarchartServletResponse query(String method, String url, String data,
-			Map headers) throws IOException {
+	public HttpServletResponseWrapper query(String method, String url,
+			String data, Map headers) throws IOException {
 
 		log.debug(url);
 
-		BarchartServletRequest request =
-				new BarchartServletRequest(method, url, data, headers);
-		BarchartServletResponse response = new BarchartServletResponse();
+		HttpServletRequestWrapper request =
+				new HttpServletRequestWrapper(method, url, data, headers);
+		HttpServletResponseWrapper response = new HttpServletResponseWrapper();
 		try {
 			_apiServlet.service(request, response);
 		} catch (ServletException ex) {

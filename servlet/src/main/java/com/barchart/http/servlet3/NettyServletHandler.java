@@ -24,6 +24,9 @@ import com.barchart.http.request.ServerResponse;
  * 
  * @version $Revision: 1.2 $ $Date: 2012/04/27 07:40:28 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
 public class NettyServletHandler implements RequestHandler {
 

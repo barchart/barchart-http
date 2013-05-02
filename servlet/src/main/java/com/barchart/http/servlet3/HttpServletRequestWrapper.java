@@ -44,8 +44,11 @@ import javax.servlet.http.Part;
  * 
  * @version $Revision: 1.43 $ $Date: 2010/09/29 17:21:48 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
-public class BarchartServletRequest implements HttpServletRequest {
+public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	/**
 	 * The localhost name.
@@ -138,6 +141,7 @@ public class BarchartServletRequest implements HttpServletRequest {
 		} catch (UnknownHostException exception) {
 			LOCALHOST_ADDRESS = "127.0.0.1";
 		}
+
 		try {
 			LOCALHOST_NAME = InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException exception) {
@@ -152,7 +156,7 @@ public class BarchartServletRequest implements HttpServletRequest {
 	 *            the request URL or the list of the parameters (name=value)
 	 *            separated with comma's. Cannot be <code>null</code>.
 	 */
-	public BarchartServletRequest(String url) {
+	public HttpServletRequestWrapper(String url) {
 		this("GET", url, null, null);
 	}
 
@@ -176,7 +180,7 @@ public class BarchartServletRequest implements HttpServletRequest {
 	 * 
 	 * @since XINS 1.5.0
 	 */
-	public BarchartServletRequest(String method, String url, String data,
+	public HttpServletRequestWrapper(String method, String url, String data,
 			Map headers) {
 		_method = method;
 		_url = url;
@@ -240,7 +244,7 @@ public class BarchartServletRequest implements HttpServletRequest {
 					if (currValue == null) {
 						_parameters.put(paramName, paramValue);
 					} else if (currValue instanceof String) {
-						ArrayList values = new ArrayList();
+						ArrayList<Object> values = new ArrayList<Object>();
 						values.add(currValue);
 						values.add(paramValue);
 						_parameters.put(paramName, values);
@@ -549,7 +553,7 @@ public class BarchartServletRequest implements HttpServletRequest {
 		String sessionKey = getRemoteAddr() + getRemoteUser();
 		HttpSession session = (HttpSession) SESSIONS.get(sessionKey);
 		if (session == null) {
-			session = new BarchartHttpSession();
+			session = new HttpSessionWrapper();
 			SESSIONS.put(sessionKey, session);
 		}
 		return session;

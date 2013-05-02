@@ -37,11 +37,14 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Revision: 1.26 $ $Date: 2010/10/02 19:18:29 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
-public class BarchartServletContext implements ServletContext {
+public class HttpServletContextWrapper implements ServletContext {
 
 	private static final Logger log = LoggerFactory
-			.getLogger(BarchartServletContext.class);
+			.getLogger(HttpServletContextWrapper.class);
 
 	/**
 	 * The configuration of the servlet.
@@ -56,7 +59,7 @@ public class BarchartServletContext implements ServletContext {
 	/**
 	 * Creates a new <code>XINSServletContext</code> instance.
 	 */
-	public BarchartServletContext() {
+	public HttpServletContextWrapper() {
 		// empty
 	}
 
@@ -67,7 +70,7 @@ public class BarchartServletContext implements ServletContext {
 	 * @param config
 	 *            the config of the servlet, can be <code>null</code>.
 	 */
-	BarchartServletContext(LocalServletConfig config) {
+	HttpServletContextWrapper(LocalServletConfig config) {
 		_config = config;
 		_rootURL = "jar:" + config.getWarFile().toURI().toString() + "!";
 	}

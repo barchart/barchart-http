@@ -29,6 +29,9 @@ import org.xml.sax.InputSource;
  * @author <a href="mailto:ernst@ernstdehaan.com">Ernst de Haan</a>
  * 
  * @since XINS 1.3.0
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
 public class SAXParserProvider {
 

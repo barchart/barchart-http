@@ -29,6 +29,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * 
  * @version $Revision: 1.21 $ $Date: 2010/09/29 17:21:48 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
+ * 
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * 
  */
 public class LocalServletConfig implements ServletConfig {
 
@@ -70,7 +73,7 @@ public class LocalServletConfig implements ServletConfig {
 	public LocalServletConfig(File warFileLocation) {
 		_warFile = warFileLocation;
 		_initParameters = new Properties();
-		_context = new BarchartServletContext(this);
+		_context = new HttpServletContextWrapper(this);
 
 		try {
 			JarFile warFile = new JarFile(warFileLocation);
