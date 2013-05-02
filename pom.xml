@@ -33,6 +33,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<module>servlet</module>
 		<module>handlers</module>
 		<module>feature</module>
+		<module>barchart-http-handlers</module>
 	</modules>
 
 	<build>
