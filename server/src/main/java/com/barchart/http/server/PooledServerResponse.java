@@ -293,6 +293,9 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 				writeFuture = context.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
+				// MJS: TBD close the channel here
+				// context.channel().close();
+
 			} else {
 
 				writeFuture = startResponse();
@@ -392,15 +395,6 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 			final HttpContent chunk = new DefaultHttpContent(content);
 			context.write(chunk);
-
-			// MJS: In order for chunks to be handled by the ChunkedWriteHandler
-			// we need to use a ChunkedInput wrapping the necessary bytes
-			// i.e
-			// http://netty.io/4.0/api/io/netty/handler/stream/ChunkedWriteHandler.html
-
-			// context.write(new ChunkedStream(new
-			// ByteBufInputStream(content)));
-
 		}
 
 	}

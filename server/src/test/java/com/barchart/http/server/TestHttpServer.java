@@ -136,13 +136,16 @@ public class TestHttpServer {
 	@Test
 	public void testBasicRequest() throws Exception {
 
-		final HttpGet get = new HttpGet("http://localhost:" + port + "/basic");
-		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		for (int i = 0; i < 100; i++) {
+			final HttpGet get =
+					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpResponse response = client.execute(get);
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine().trim();
 
-		assertEquals("basic", content);
+			assertEquals("basic", content);
+		}
 	}
 
 	// MJS: We test basic authentication by encoding the user:password in
@@ -155,7 +158,7 @@ public class TestHttpServer {
 				new BasicAuthorizationHandler(testAuthenticator));
 
 		// MJS: Right login/password
-		{
+		for (int i = 0; i < 10; i++) {
 			final HttpGet get =
 					new HttpGet("http://localhost:" + port + "/basic");
 
@@ -182,11 +185,14 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
+			new BufferedReader(new InputStreamReader(response.getEntity()
+					.getContent())).readLine();
 			assertEquals(404, response.getStatusLine().getStatusCode());
 		}
 
-		// MJS: No authentication so automatic reject
-		{
+		// MJS: No authentication so automatic reject - We also loop aro9und to
+		// see if there are any leaks connected to the 404 issue
+		for (int i = 0; i < 10; i++) {
 			final HttpGet get =
 					new HttpGet("http://localhost:" + port + "/basic");
 
@@ -196,8 +202,8 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
-
-			// TBD - the server returns 503!!!
+			new BufferedReader(new InputStreamReader(response.getEntity()
+					.getContent())).readLine();
 			assertEquals(404, response.getStatusLine().getStatusCode());
 		}
 	}

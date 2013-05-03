@@ -51,6 +51,8 @@ public class HttpRequestChannelHandler extends
 	public void messageReceived(final ChannelHandlerContext ctx,
 			final FullHttpRequest msg) throws Exception {
 
+		boolean bNotFound = false;
+
 		// MJS: Here we gather the request handler and also determine if
 		// authentication is taking place and
 		// we issue either a 404 or a 401 challenge if the message doesn't
@@ -58,10 +60,8 @@ public class HttpRequestChannelHandler extends
 		final RequestHandlerMapping mapping =
 				config.getRequestMapping(msg.getUri());
 
-		if (mapping == null) {
-			sendNotFound(ctx, msg);
-			return;
-		}
+		if (mapping == null)
+			bNotFound = true;
 
 		if (config.getAuthorizationHandler("BASIC") != null
 				|| config.getAuthorizationHandler("DIGEST") != null) {
@@ -75,17 +75,14 @@ public class HttpRequestChannelHandler extends
 			if (authHeader == null
 					|| (authorization =
 							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null) {
+									"Authorization"))) == null)
+				bNotFound = true;
 
-				sendNotFound(ctx, msg);
-				return;
-			}
+			else {
+				authorization.setRequestBody(msg.toString());
 
-			authorization.setRequestBody(msg.toString());
-
-			if (authorization.authorize(authHeader) == null) {
-				sendNotFound(ctx, msg);
-				return;
+				if (authorization.authorize(authHeader) == null)
+					bNotFound = true;
 			}
 		}
 
@@ -114,8 +111,14 @@ public class HttpRequestChannelHandler extends
 
 		try {
 
+			// MJS: Dispatch a 404
+			if (bNotFound) {
+				response.setStatus(HttpResponseStatus.NOT_FOUND);
+				config.errorHandler().onError(request, response, null);
+			}
 			// Process request
-			handler.onRequest(request, response);
+			else
+				handler.onRequest(request, response);
 
 		} catch (final Throwable t) {
 
@@ -132,49 +135,6 @@ public class HttpRequestChannelHandler extends
 			}
 
 			config.logger().error(request, response, t);
-
-		} finally {
-
-			// If handler did not request async response, finish request
-			if (!response.isFinished() && !response.isSuspended()) {
-				response.finish();
-			}
-
-		}
-
-	}
-
-	private void sendNotFound(final ChannelHandlerContext ctx,
-			final FullHttpRequest msg) throws Exception {
-
-		// Create request/response
-		final PooledServerRequest request = messagePool.getRequest();
-
-		// Handle 503 - sanity check, should be caught in acceptor
-		if (request == null) {
-			sendServerError(ctx, new ServerTooBusyException(
-					"Maximum concurrent connections reached"));
-			return;
-		}
-
-		request.init(ctx.channel(), msg, msg.getUri());
-
-		final PooledServerResponse response = messagePool.getResponse();
-		response.init(ctx, this, null, request, config.logger());
-		response.setStatus(HttpResponseStatus.NOT_FOUND);
-
-		// Store in ChannelHandlerContext for future reference
-		ctx.attr(ATTR_RESPONSE).set(response);
-
-		try {
-
-			// Process request
-			config.errorHandler().onError(request, response, null);
-
-		} catch (final Throwable e) {
-
-			response.write("The requested URL was not found.  Additionally, "
-					+ e.getClass() + " was thrown while handling this error.");
 
 		} finally {
 
