@@ -45,7 +45,7 @@ import com.barchart.session.host.MultiThreadedRunner;
 
 // MJS: We run it in parallel to stress the server more and also to take advantage of multiple cores for speed
 @RunWith(MultiThreadedRunner.class)
-public class TestHttpServer {
+public class TestHttpServlet {
 
 	private HttpServer server;
 	private HttpClient client;
