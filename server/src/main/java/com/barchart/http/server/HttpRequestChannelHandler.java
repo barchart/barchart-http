@@ -63,7 +63,7 @@ public class HttpRequestChannelHandler extends
 		if (mapping == null)
 			bNotFound = true;
 
-		if (config.getAuthorizationHandler("BASIC") != null
+		else if (config.getAuthorizationHandler("BASIC") != null
 				|| config.getAuthorizationHandler("DIGEST") != null) {
 
 			// MJS: Do we have authorization on this server?
@@ -86,8 +86,10 @@ public class HttpRequestChannelHandler extends
 			}
 		}
 
-		final String relativePath =
-				msg.getUri().substring(mapping.path().length());
+		String relativePath = msg.getUri();
+
+		if (!bNotFound)
+			relativePath = relativePath.substring(mapping.path().length());
 
 		// Create request/response
 		final PooledServerRequest request = messagePool.getRequest();
@@ -101,10 +103,15 @@ public class HttpRequestChannelHandler extends
 
 		request.init(ctx.channel(), msg, relativePath);
 
-		final RequestHandler handler = mapping.handler(request);
+		final RequestHandler handler =
+				mapping == null ? null : mapping.handler(request);
 
 		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, this, handler, request, config.logger());
+
+		// MJS: Dispatch a 404
+		if (bNotFound)
+			response.setStatus(HttpResponseStatus.NOT_FOUND);
 
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
@@ -112,10 +119,9 @@ public class HttpRequestChannelHandler extends
 		try {
 
 			// MJS: Dispatch a 404
-			if (bNotFound) {
-				response.setStatus(HttpResponseStatus.NOT_FOUND);
+			if (bNotFound)
 				config.errorHandler().onError(request, response, null);
-			}
+
 			// Process request
 			else
 				handler.onRequest(request, response);
