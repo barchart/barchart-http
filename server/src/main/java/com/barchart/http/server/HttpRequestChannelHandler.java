@@ -60,35 +60,9 @@ public class HttpRequestChannelHandler extends
 		final RequestHandlerMapping mapping =
 				config.getRequestMapping(msg.getUri());
 
-		if (mapping == null)
-			bNotFound = true;
-
-		else if (config.getAuthorizationHandler("BASIC") != null
-				|| config.getAuthorizationHandler("DIGEST") != null) {
-
-			// MJS: Do we have authorization on this server?
-			AuthorizationHandler authorization = null;
-			final String authHeader = msg.headers().get("Authorization");
-
-			// MJS: No authorization header or one not matched by an existing
-			// handler? no go
-			if (authHeader == null
-					|| (authorization =
-							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null)
-				bNotFound = true;
-
-			else {
-				authorization.setRequestBody(msg.toString());
-
-				if (authorization.authorize(authHeader) == null)
-					bNotFound = true;
-			}
-		}
-
 		String relativePath = msg.getUri();
 
-		if (!bNotFound)
+		if (mapping != null)
 			relativePath = relativePath.substring(mapping.path().length());
 
 		// Create request/response
@@ -109,17 +83,37 @@ public class HttpRequestChannelHandler extends
 		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, this, handler, request, config.logger());
 
-		// MJS: Dispatch a 404
-		if (bNotFound)
+		// MJS: Dispatch a 404 in case we don't find the handler
+		if (mapping == null)
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
+
+		// MJS: Should we authenticate?
+		else if (config.hasAuthorizationHandlers()) {
+
+			// MJS: Do we have authorization on this server?
+			AuthorizationHandler authorization = null;
+			final String authHeader = msg.headers().get("Authorization");
+
+			// MJS: No authorization header or one not matched by an existing
+			// handler? no go
+			if (authHeader == null
+					|| (authorization =
+							config.getAuthorizationHandler(msg.headers().get(
+									"Authorization"))) == null)
+				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
+
+			else
+				authorization.onRequest(request, response);
+		}
 
 		// Store in ChannelHandlerContext for future reference
 		ctx.attr(ATTR_RESPONSE).set(response);
 
 		try {
 
-			// MJS: Dispatch a 404
-			if (bNotFound)
+			// MJS: Dispatch an error if not found or authorized
+			if (response.getStatus() == HttpResponseStatus.UNAUTHORIZED
+					|| response.getStatus() == HttpResponseStatus.NOT_FOUND)
 				config.errorHandler().onError(request, response, null);
 
 			// Process request

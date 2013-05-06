@@ -200,6 +200,13 @@ public class HttpServerConfig {
 	}
 
 	/**
+	 * Indicates if we need to authenticate upon requests
+	 */
+	public boolean hasAuthorizationHandlers() {
+		return authorizationHandlers.size() > 0;
+	}
+
+	/**
 	 * Get the authorization handler for the specified header.
 	 */
 	public AuthorizationHandler getAuthorizationHandler(final String header) {

@@ -7,6 +7,13 @@
  */
 package com.barchart.http.auth;
 
+import io.netty.handler.codec.http.HttpHeaders.Names;
+import io.netty.handler.codec.http.HttpResponseStatus;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +23,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.digest.DigestUtils;
+
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 
 /**
  * Implements the HTTP Digest Auth as per RFC2617.
@@ -97,79 +107,45 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 		return DigestUtils.md5Hex(domain + nonce);
 	}
 
-	// MJS: This is needed for validation
-	private String requestBody;
-
 	/**
-	 * @return the requestBody
+	 * Returns the request body as String
+	 * 
+	 * @param request
+	 * @return
+	 * @throws IOException
 	 */
-	public String getRequestBody() {
-		return requestBody;
-	}
-
-	/**
-	 * @param requestBody
-	 *            the requestBody to set
-	 */
-	@Override
-	public void setRequestBody(String requestBody) {
-		this.requestBody = requestBody;
-	}
-
-	// MJS: We pass on the authorization header string here and we compute an
-	// expected response also including a nonce to prevent repeat attacks
-
-	@Override
-	public String authorize(final String data) {
-
-		HashMap<String, String> headerValues = parseHeader(data);
-
-		String userName = headerValues.get("username");
-
-		String ha1 =
-				DigestUtils.md5Hex(userName + ":" + realm + ":"
-						+ authenticator.getPassword(userName));
-
-		String qop = headerValues.get("qop");
-
-		String ha2;
-
-		String reqURI = headerValues.get("uri");
-
-		if (qop != null && !qop.isEmpty() && qop.equals("auth-int")) {
-			String entityBodyMd5 = DigestUtils.md5Hex(requestBody);
-			ha2 =
-					DigestUtils.md5Hex(getMethod() + ":" + reqURI + ":"
-							+ entityBodyMd5);
-		} else {
-			ha2 = DigestUtils.md5Hex(getMethod() + ":" + reqURI);
+	private String readRequestBody(ServerRequest request) throws IOException {
+		StringBuilder stringBuilder = new StringBuilder();
+		BufferedReader bufferedReader = null;
+		try {
+			InputStream inputStream = request.getInputStream();
+			if (inputStream != null) {
+				bufferedReader =
+						new BufferedReader(new InputStreamReader(inputStream));
+				char[] charBuffer = new char[128];
+				int bytesRead = -1;
+				while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+					stringBuilder.append(charBuffer, 0, bytesRead);
+				}
+			} else {
+				stringBuilder.append("");
+			}
+		} catch (IOException ex) {
+			throw ex;
+		} finally {
+			if (bufferedReader != null) {
+				try {
+					bufferedReader.close();
+				} catch (IOException ex) {
+					throw ex;
+				}
+			}
 		}
-
-		String serverResponse;
-
-		if (qop == null || qop.isEmpty()) {
-			serverResponse = DigestUtils.md5Hex(ha1 + ":" + nonce + ":" + ha2);
-
-		} else {
-			String nonceCount = headerValues.get("nc");
-			String clientNonce = headerValues.get("cnonce");
-
-			serverResponse =
-					DigestUtils.md5Hex(ha1 + ":" + nonce + ":" + nonceCount
-							+ ":" + clientNonce + ":" + qop + ":" + ha2);
-		}
-
-		String clientResponse = headerValues.get("response");
-
-		// MJS: Since the password is already hashed
-		if (serverResponse.equals(clientResponse))
-			return clientResponse;
-
-		return null;
+		String body = stringBuilder.toString();
+		return body;
 	}
 
-	@Override
-	public String getAuthenticateHeader(String data) {
+	private String getAuthenticateHeader() {
 		String header = "";
 
 		header += "Digest realm=\"" + realm + "\",";
@@ -178,5 +154,79 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 		header += "opaque=\"" + getOpaque(realm, nonce) + "\"";
 
 		return header;
+	}
+
+	@Override
+	public void onRequest(ServerRequest request, ServerResponse response)
+			throws IOException {
+
+		String requestBody = readRequestBody(request);
+
+		final String authHeader = request.headers().get("Authorization");
+
+		if (authHeader == null || "".equals(authHeader)) {
+			response.headers().set(Names.WWW_AUTHENTICATE,
+					getAuthenticateHeader());
+			response.setStatus(HttpResponseStatus.UNAUTHORIZED);
+
+		} else {
+			if (authHeader.startsWith("Digest")) {
+
+				// parse the values of the Authentication header into a
+				// hashmap
+				final HashMap<String, String> headerValues =
+						parseHeader(authHeader);
+
+				final String userName = headerValues.get("username");
+
+				final String method = request.getMethod().name();
+
+				final String ha1 =
+						DigestUtils.md5Hex(userName + ":" + realm + ":"
+								+ authenticator.getPassword(userName));
+
+				String qop = headerValues.get("qop");
+
+				String ha2;
+
+				String reqURI = headerValues.get("uri");
+
+				if (qop != null && qop.equals("auth-int")) {
+					String entityBodyMd5 = DigestUtils.md5Hex(requestBody);
+					ha2 =
+							DigestUtils.md5Hex(method + ":" + reqURI + ":"
+									+ entityBodyMd5);
+				} else {
+					ha2 = DigestUtils.md5Hex(method + ":" + reqURI);
+				}
+
+				String serverResponse;
+
+				if (qop == null || "".equals(qop)) {
+					serverResponse =
+							DigestUtils.md5Hex(ha1 + ":" + nonce + ":" + ha2);
+
+				} else {
+					String nonceCount = headerValues.get("nc");
+					String clientNonce = headerValues.get("cnonce");
+
+					serverResponse =
+							DigestUtils.md5Hex(ha1 + ":" + nonce + ":"
+									+ nonceCount + ":" + clientNonce + ":"
+									+ qop + ":" + ha2);
+
+				}
+
+				String clientResponse = headerValues.get("response");
+
+				if (!serverResponse.equals(clientResponse)) {
+					response.headers().set(Names.WWW_AUTHENTICATE,
+							getAuthenticateHeader());
+					response.setStatus(HttpResponseStatus.UNAUTHORIZED);
+				}
+			} else {
+				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
+			}
+		}
 	}
 }

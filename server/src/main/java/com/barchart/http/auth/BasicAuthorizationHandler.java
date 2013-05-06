@@ -7,6 +7,13 @@
  */
 package com.barchart.http.auth;
 
+import io.netty.handler.codec.http.HttpHeaders.Names;
+import io.netty.handler.codec.http.HttpResponseStatus;
+
+import java.io.IOException;
+
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
 import com.barchart.http.util.Base64;
 
 /**
@@ -28,36 +35,36 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 		return "Basic";
 	}
 
+	// MJS: We implement Basic authentication per
+	// http://en.wikipedia.org/wiki/Basic_access_authentication
+
 	@Override
-	public String authorize(final String data) {
+	public void onRequest(ServerRequest request, ServerResponse response)
+			throws IOException {
 
-		try {
+		final String authHeader = request.headers().get("Authorization");
 
-			final String[] structure = data.split(" ");
-			final String[] userpass =
-					new String(Base64.decode(structure[1])).split(":");
+		if (authHeader == null || authHeader.equals("")) {
+			response.headers().set(Names.WWW_AUTHENTICATE,
+					"Basic realm=\"barchart.com\"");
+			response.setStatus(HttpResponseStatus.UNAUTHORIZED);
 
-			if (authenticator.authenticate(userpass[0], userpass[1])) {
-				return userpass[0];
+		} else {
+			try {
+
+				final String[] structure = authHeader.split(" ");
+				final String[] userpass =
+						new String(Base64.decode(structure[1])).split(":");
+
+				if (!authenticator.authenticate(userpass[0], userpass[1])) {
+					response.headers().set(Names.WWW_AUTHENTICATE,
+							"Basic realm=\"barchart.com\"");
+					response.setStatus(HttpResponseStatus.UNAUTHORIZED);
+				} else
+					response.setStatus(HttpResponseStatus.ACCEPTED);
+
+			} catch (final Exception e) {
 			}
-
-		} catch (final Exception e) {
 		}
-
-		return null;
-
-	}
-
-	// MJS: Basic doesn't require a challenge
-
-	@Override
-	public String getAuthenticateHeader(String data) {
-		return null;
-	}
-
-	@Override
-	public void setRequestBody(String requestBody) {
-		// TODO Auto-generated method stub
-
 	}
 }

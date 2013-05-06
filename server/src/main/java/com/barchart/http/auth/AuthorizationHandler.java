@@ -7,7 +7,15 @@
  */
 package com.barchart.http.auth;
 
+import java.io.IOException;
 
+import com.barchart.http.request.ServerRequest;
+import com.barchart.http.request.ServerResponse;
+
+/**
+ * Simplified version of Request Handler is used for authorizations
+ * 
+ */
 public interface AuthorizationHandler {
 
 	/**
@@ -16,25 +24,9 @@ public interface AuthorizationHandler {
 	public String getMethod();
 
 	/**
-	 * If applicable gets the challenge to be included in a 401 response to
-	 * access for a protected resource
+	 * Called when a new request is received from the client, response contains
+	 * the validation or not i.e 401 code
 	 */
-	public String getAuthenticateHeader(String data);
-
-	/**
-	 * 
-	 * @param requestBody
-	 * 
-	 *            Some schema require a request body to be added in
-	 * 
-	 */
-	public void setRequestBody(String requestBody);
-
-	/**
-	 * Attempt to authorize the user with the given authorization data and
-	 * return the remote user associated with it. If no authorization succeeds,
-	 * this method will return null.
-	 */
-	public String authorize(String data);
-
+	public void onRequest(ServerRequest request, ServerResponse response)
+			throws IOException;
 }
