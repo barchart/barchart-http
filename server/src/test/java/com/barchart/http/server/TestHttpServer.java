@@ -17,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -46,7 +45,9 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -77,6 +78,19 @@ public class TestHttpServer {
 
 	private TestAuthenticator testAuthenticator;
 
+	// MJS: Looks like for Jenkins we need to resort to our own random ports as
+	// final ServerSocket s = new ServerSocket(0);.. doesn't seem to work
+	static private AtomicInteger ports;
+
+	@BeforeClass
+	static public void beforeClass() throws Exception {
+		ports = new AtomicInteger(50000);
+	}
+
+	@AfterClass
+	static public void afterClass() throws Exception {
+	}
+
 	@Before
 	public void setUp() throws Exception {
 
@@ -95,14 +109,7 @@ public class TestHttpServer {
 				new TestRequestHandler("channel-error", false, 0, 0, false,
 						true);
 
-		try {
-			final ServerSocket s = new ServerSocket(0);
-			port = s.getLocalPort();
-
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-
+		port = ports.getAndIncrement();
 		testAuthenticator = new TestAuthenticator();
 
 		final HttpServerConfig config =
