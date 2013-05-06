@@ -39,7 +39,7 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 	// http://en.wikipedia.org/wiki/Basic_access_authentication
 
 	@Override
-	public void onRequest(ServerRequest request, ServerResponse response)
+	public void authenticate(ServerRequest request, ServerResponse response)
 			throws IOException {
 
 		final String authHeader = request.headers().get("Authorization");

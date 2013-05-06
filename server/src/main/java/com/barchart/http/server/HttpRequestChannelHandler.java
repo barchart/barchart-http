@@ -51,8 +51,6 @@ public class HttpRequestChannelHandler extends
 	public void messageReceived(final ChannelHandlerContext ctx,
 			final FullHttpRequest msg) throws Exception {
 
-		boolean bNotFound = false;
-
 		// MJS: Here we gather the request handler and also determine if
 		// authentication is taking place and
 		// we issue either a 404 or a 401 challenge if the message doesn't
@@ -103,7 +101,7 @@ public class HttpRequestChannelHandler extends
 				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
 
 			else
-				authorization.onRequest(request, response);
+				authorization.authenticate(request, response);
 		}
 
 		// Store in ChannelHandlerContext for future reference

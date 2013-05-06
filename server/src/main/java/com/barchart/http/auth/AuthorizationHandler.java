@@ -27,6 +27,6 @@ public interface AuthorizationHandler {
 	 * Called when a new request is received from the client, response contains
 	 * the validation or not i.e 401 code
 	 */
-	public void onRequest(ServerRequest request, ServerResponse response)
+	public void authenticate(ServerRequest request, ServerResponse response)
 			throws IOException;
 }

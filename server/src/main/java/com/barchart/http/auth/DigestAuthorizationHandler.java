@@ -157,7 +157,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	}
 
 	@Override
-	public void onRequest(ServerRequest request, ServerResponse response)
+	public void authenticate(ServerRequest request, ServerResponse response)
 			throws IOException {
 
 		String requestBody = readRequestBody(request);
