@@ -36,7 +36,7 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 	}
 
 	// MJS: We implement Basic authentication per
-	// http://en.wikipedia.org/wiki/Basic_access_authentication
+	// http://tools.ietf.org/html/rfc2617
 
 	@Override
 	public void authenticate(ServerRequest request, ServerResponse response)
