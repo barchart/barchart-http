@@ -219,8 +219,29 @@ public class TestHttpServer {
 		server.config().authorizationHandler(
 				new DigestAuthorizationHandler(testAuthenticator));
 
-		HttpHost targetHost = new HttpHost("localhost", port, "http");
-		DefaultHttpClient client = new DefaultHttpClient();
+		final HttpHost targetHost = new HttpHost("localhost", port, "http");
+		final DefaultHttpClient client = new DefaultHttpClient();
+
+		// Create AuthCache instance
+		final AuthCache authCache = new BasicAuthCache();
+
+		// Generate DIGEST scheme object, initialize it and add it to the
+		// local auth cache
+		final DigestScheme digestAuth = new DigestScheme();
+
+		// Suppose we already know the realm name
+		digestAuth.overrideParamter("realm", "barchart.com");
+
+		// Suppose we already know the expected nonce value
+		digestAuth.overrideParamter("nonce", "whatever");
+
+		authCache.put(targetHost, digestAuth);
+
+		// Add AuthCache to the execution context
+		BasicHttpContext localcontext = new BasicHttpContext();
+		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+		HttpGet httpget = new HttpGet("http://localhost:" + port + "/basic");
 
 		// MJS: Below is how a Digest request is setup and made, more elaborate
 		// compared to a Basic one but the security is way better
@@ -231,28 +252,6 @@ public class TestHttpServer {
 			client.getCredentialsProvider().setCredentials(
 					new AuthScope("localhost", port),
 					new UsernamePasswordCredentials(userName, password));
-
-			// Create AuthCache instance
-			AuthCache authCache = new BasicAuthCache();
-
-			// Generate DIGEST scheme object, initialize it and add it to the
-			// local auth cache
-			DigestScheme digestAuth = new DigestScheme();
-
-			// Suppose we already know the realm name
-			digestAuth.overrideParamter("realm", "barchart.com");
-
-			// Suppose we already know the expected nonce value
-			digestAuth.overrideParamter("nonce", "whatever");
-
-			authCache.put(targetHost, digestAuth);
-
-			// Add AuthCache to the execution context
-			BasicHttpContext localcontext = new BasicHttpContext();
-			localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-
-			HttpGet httpget =
-					new HttpGet("http://localhost:" + port + "/basic");
 
 			final HttpResponse response =
 					client.execute(targetHost, httpget, localcontext);
@@ -270,28 +269,6 @@ public class TestHttpServer {
 			client.getCredentialsProvider().setCredentials(
 					new AuthScope("localhost", port),
 					new UsernamePasswordCredentials(userName, password));
-
-			// Create AuthCache instance
-			AuthCache authCache = new BasicAuthCache();
-
-			// Generate DIGEST scheme object, initialize it and add it to the
-			// local auth cache
-			DigestScheme digestAuth = new DigestScheme();
-
-			// Suppose we already know the realm name
-			digestAuth.overrideParamter("realm", "barchart.com");
-
-			// Suppose we already know the expected nonce value
-			digestAuth.overrideParamter("nonce", "whatever");
-
-			authCache.put(targetHost, digestAuth);
-
-			// Add AuthCache to the execution context
-			BasicHttpContext localcontext = new BasicHttpContext();
-			localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-
-			HttpGet httpget =
-					new HttpGet("http://localhost:" + port + "/basic");
 
 			final HttpResponse response =
 					client.execute(targetHost, httpget, localcontext);
