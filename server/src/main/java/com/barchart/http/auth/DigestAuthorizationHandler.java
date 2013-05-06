@@ -223,7 +223,8 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 					response.headers().set(Names.WWW_AUTHENTICATE,
 							getAuthenticateHeader());
 					response.setStatus(HttpResponseStatus.UNAUTHORIZED);
-				}
+				} else
+					response.setStatus(HttpResponseStatus.ACCEPTED);
 			} else {
 				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
 			}

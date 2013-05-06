@@ -172,6 +172,7 @@ public class TestHttpServer {
 					new BufferedReader(new InputStreamReader(response
 							.getEntity().getContent())).readLine().trim();
 			assertEquals("basic", content);
+			assertEquals(202, response.getStatusLine().getStatusCode());
 		}
 
 		// MJS: Wrong login/password so reject
@@ -185,13 +186,14 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
-			new BufferedReader(new InputStreamReader(response.getEntity()
-					.getContent())).readLine();
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine();
 			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 
-		// MJS: No authentication so automatic reject - We also loop aro9und to
-		// see if there are any leaks connected to the 404 issue
+		// MJS: No authentication so automatic reject - We also loop around to
+		// see if there are any leaks connected to the reject issue
 		for (int i = 0; i < 10; i++) {
 			final HttpGet get =
 					new HttpGet("http://localhost:" + port + "/basic");
@@ -202,8 +204,9 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
-			new BufferedReader(new InputStreamReader(response.getEntity()
-					.getContent())).readLine();
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine();
 			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 	}
@@ -217,44 +220,87 @@ public class TestHttpServer {
 				new DigestAuthorizationHandler(testAuthenticator));
 
 		HttpHost targetHost = new HttpHost("localhost", port, "http");
-
-		final String userName = "aaa";
-		final String password = "bbb";
-
 		DefaultHttpClient client = new DefaultHttpClient();
 
-		client.getCredentialsProvider().setCredentials(
-				new AuthScope("localhost", port),
-				new UsernamePasswordCredentials(userName, password));
+		// MJS: Below is how a Digest request is setup and made, more elaborate
+		// compared to a Basic one but the security is way better
+		{
+			final String userName = "aaa";
+			final String password = "bbb";
 
-		// Create AuthCache instance
-		AuthCache authCache = new BasicAuthCache();
+			client.getCredentialsProvider().setCredentials(
+					new AuthScope("localhost", port),
+					new UsernamePasswordCredentials(userName, password));
 
-		// Generate DIGEST scheme object, initialize it and add it to the local
-		// auth cache
-		DigestScheme digestAuth = new DigestScheme();
+			// Create AuthCache instance
+			AuthCache authCache = new BasicAuthCache();
 
-		// Suppose we already know the realm name
-		digestAuth.overrideParamter("realm", "barchart.com");
+			// Generate DIGEST scheme object, initialize it and add it to the
+			// local auth cache
+			DigestScheme digestAuth = new DigestScheme();
 
-		// Suppose we already know the expected nonce value
-		digestAuth.overrideParamter("nonce", "whatever");
+			// Suppose we already know the realm name
+			digestAuth.overrideParamter("realm", "barchart.com");
 
-		authCache.put(targetHost, digestAuth);
+			// Suppose we already know the expected nonce value
+			digestAuth.overrideParamter("nonce", "whatever");
 
-		// Add AuthCache to the execution context
-		BasicHttpContext localcontext = new BasicHttpContext();
-		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+			authCache.put(targetHost, digestAuth);
 
-		HttpGet httpget = new HttpGet("http://localhost:" + port + "/basic");
+			// Add AuthCache to the execution context
+			BasicHttpContext localcontext = new BasicHttpContext();
+			localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-		final HttpResponse response =
-				client.execute(targetHost, httpget, localcontext);
+			HttpGet httpget =
+					new HttpGet("http://localhost:" + port + "/basic");
 
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
-		assertEquals("basic", content);
+			final HttpResponse response =
+					client.execute(targetHost, httpget, localcontext);
+
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine().trim();
+			assertEquals(202, response.getStatusLine().getStatusCode());
+			assertEquals("basic", content);
+		}
+		{
+			final String userName = "aaa";
+			final String password = "badpassword";
+
+			client.getCredentialsProvider().setCredentials(
+					new AuthScope("localhost", port),
+					new UsernamePasswordCredentials(userName, password));
+
+			// Create AuthCache instance
+			AuthCache authCache = new BasicAuthCache();
+
+			// Generate DIGEST scheme object, initialize it and add it to the
+			// local auth cache
+			DigestScheme digestAuth = new DigestScheme();
+
+			// Suppose we already know the realm name
+			digestAuth.overrideParamter("realm", "barchart.com");
+
+			// Suppose we already know the expected nonce value
+			digestAuth.overrideParamter("nonce", "whatever");
+
+			authCache.put(targetHost, digestAuth);
+
+			// Add AuthCache to the execution context
+			BasicHttpContext localcontext = new BasicHttpContext();
+			localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+			HttpGet httpget =
+					new HttpGet("http://localhost:" + port + "/basic");
+
+			final HttpResponse response =
+					client.execute(targetHost, httpget, localcontext);
+
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine().trim();
+			assertEquals(401, response.getStatusLine().getStatusCode());
+		}
 	}
 
 	@Test
