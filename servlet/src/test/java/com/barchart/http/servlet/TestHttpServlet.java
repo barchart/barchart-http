@@ -12,10 +12,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.CharBuffer;
 
@@ -60,13 +58,7 @@ public class TestHttpServlet {
 		servlet =
 				new TestServlet(f, "com.barchart.servlet.example.TestServlet");
 
-		try {
-			final ServerSocket s = new ServerSocket(0);
-			port = s.getLocalPort();
-
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
+		port = 50000;
 
 		final HttpServerConfig config =
 				new HttpServerConfig()
