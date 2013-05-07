@@ -3,7 +3,7 @@
  *
  * See the COPYRIGHT file for redistribution and use restrictions.
  */
-package com.barchart.http.servlet3;
+package com.barchart.http.servlet;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,23 +41,16 @@ public class ServletClassLoader {
 	public static final int USE_CLASSPATH_LIB = 2;
 
 	/**
-	 * Load the servlet code from the WAR file and try to find the libraries in
-	 * the same directory as this xins-common.jar and &lt:parent&gt;/lib
-	 * directory.
-	 */
-	public static final int USE_XINS_LIB = 3;
-
-	/**
 	 * Load the servlet code and the libraries from the WAR file. This may take
 	 * some time as the libraries need to be extracted from the WAR file.
 	 */
-	public static final int USE_WAR_LIB = 4;
+	public static final int USE_WAR_LIB = 3;
 
 	/**
 	 * Load the servlet code and the standard libraries from the CLASSPATH. Load
 	 * the included external libraries from the WAR file.
 	 */
-	public static final int USE_WAR_EXTERNAL_LIB = 5;
+	public static final int USE_WAR_EXTERNAL_LIB = 4;
 
 	/**
 	 * Gest the class loader that will loader the servlet.
@@ -98,33 +91,6 @@ public class ServletClassLoader {
 		}
 
 		List<String> standardLibs = new ArrayList<String>();
-		if (mode == USE_XINS_LIB) {
-			String classLocation =
-					ServletClassLoader.class.getProtectionDomain()
-							.getCodeSource().getLocation().toString();
-			String commonJar =
-					classLocation.substring(6).replace('/', File.separatorChar);
-			if (!commonJar.endsWith("xins-common.jar")) {
-				String xinsHome = System.getenv("XINS_HOME");
-				commonJar =
-						xinsHome + File.separator + "build" + File.separator
-								+ "xins-common.jar";
-			}
-			File baseDir = new File(commonJar).getParentFile();
-			File[] xinsFiles = baseDir.listFiles();
-			for (int i = 0; i < xinsFiles.length; i++) {
-				if (xinsFiles[i].getName().endsWith(".jar")) {
-					urlList.add(xinsFiles[i].toURI().toURL());
-				}
-			}
-			File libDir = new File(baseDir, ".." + File.separator + "lib");
-			File[] libFiles = libDir.listFiles();
-			for (int i = 0; i < libFiles.length; i++) {
-				if (libFiles[i].getName().endsWith(".jar")) {
-					urlList.add(libFiles[i].toURI().toURL());
-				}
-			}
-		}
 		if (mode == USE_CLASSPATH_LIB || mode == USE_WAR_EXTERNAL_LIB) {
 			String classPath = System.getProperty("java.class.path");
 			StringTokenizer stClassPath =
@@ -220,7 +186,7 @@ public class ServletClassLoader {
 		}
 
 		@Override
-		public Class loadClass(String name) throws ClassNotFoundException {
+		public Class<?> loadClass(String name) throws ClassNotFoundException {
 			return loadClass(name, false);
 		}
 
@@ -243,11 +209,11 @@ public class ServletClassLoader {
 		 *             if the class could not be loaded.
 		 */
 		@Override
-		protected Class loadClass(String name, boolean resolve)
+		protected Class<?> loadClass(String name, boolean resolve)
 				throws ClassNotFoundException {
 
 			// First, check if the class has already been loaded
-			Class c = findLoadedClass(name);
+			Class<?> c = findLoadedClass(name);
 
 			// if not loaded, search the local (child) resources
 			if (c == null) {

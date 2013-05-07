@@ -1,4 +1,4 @@
-package com.barchart.http.servlet3;
+package com.barchart.http.servlet;
 
 /*
  * $Id: SAXParserProvider.java,v 1.15 2007/03/16 09:54:59 agoubard Exp $

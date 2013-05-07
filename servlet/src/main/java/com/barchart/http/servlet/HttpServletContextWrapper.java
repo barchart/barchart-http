@@ -3,7 +3,7 @@
  *
  * See the COPYRIGHT file for redistribution and use restrictions.
  */
-package com.barchart.http.servlet3;
+package com.barchart.http.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;

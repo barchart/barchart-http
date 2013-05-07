@@ -3,7 +3,7 @@
  *
  * See the COPYRIGHT file for redistribution and use restrictions.
  */
-package com.barchart.http.servlet3;
+package com.barchart.http.servlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -78,6 +78,11 @@ public class LocalServletConfig implements ServletConfig {
 		try {
 			JarFile warFile = new JarFile(warFileLocation);
 			JarEntry webxmlEntry = warFile.getJarEntry("WEB-INF/web.xml");
+
+			// MJS: Sometimes we get sun-web as opposed to web.xml
+			if (webxmlEntry == null)
+				webxmlEntry = warFile.getJarEntry("WEB-INF/sun-web.xml");
+
 			InputStream webxmlInputStream = warFile.getInputStream(webxmlEntry);
 			parseWebXML(webxmlInputStream);
 		} catch (Exception ex) {
