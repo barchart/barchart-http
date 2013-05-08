@@ -491,6 +491,8 @@ public class TestHttpServer {
 		@Override
 		public String getData(String username) {
 
+			// MJS: In a real server a DB containing the hashes would be used to
+			// shield the real passwords. Only brute force could reveal those
 			if (username.equals("aaa"))
 				return DigestUtils.md5Hex(username + ":barchart.com:" + "bbb");
 
