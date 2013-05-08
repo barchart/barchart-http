@@ -51,7 +51,9 @@ public class ServletWrapper implements RequestHandler {
 		try {
 			LocalServletConfig servletConfig = new LocalServletConfig(warFile);
 
-			ClassLoader loader = new WarClassLoader(warFile.getAbsolutePath());
+			ClassLoader loader =
+					ServletClassLoader.getServletClassLoader(warFile,
+							ServletClassLoader.USE_WAR_LIB);
 
 			if (className != null)
 				servlet =

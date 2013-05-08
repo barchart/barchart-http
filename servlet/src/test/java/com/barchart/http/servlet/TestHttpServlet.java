@@ -7,15 +7,13 @@
  */
 package com.barchart.http.servlet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import io.netty.channel.nio.NioEventLoopGroup;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.CharBuffer;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -49,9 +47,7 @@ public class TestHttpServlet {
 		server = new HttpServer();
 
 		// MJS: Best way to access a resource for unit testing I found so far
-		URL url =
-				this.getClass().getResource(
-						File.separator + "barchart-servlet-example.war");
+		URL url = this.getClass().getResource("barchart-servlet-example.war");
 
 		File f = new File(url.getFile().replace("%20", " "));
 
@@ -88,11 +84,14 @@ public class TestHttpServlet {
 		final HttpGet get =
 				new HttpGet("http://localhost:" + port + "/servlet");
 		final HttpResponse response = client.execute(get);
-		final CharBuffer buffer = CharBuffer.allocate(10000);
-		new BufferedReader(new InputStreamReader(response.getEntity()
-				.getContent())).read(buffer);
 
-		assertEquals("basic", buffer);
+		char[] cbuf = new char[10000];
+		int num =
+				new InputStreamReader(response.getEntity().getContent())
+						.read(cbuf);
+
+		String str = new String(cbuf);
+		assertTrue(-1 != str.indexOf("Barchart Servlet"));
 	}
 
 	private class TestServlet extends ServletWrapper {
