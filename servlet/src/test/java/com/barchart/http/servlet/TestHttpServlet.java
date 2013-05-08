@@ -86,11 +86,11 @@ public class TestHttpServlet {
 		final HttpResponse response = client.execute(get);
 
 		char[] cbuf = new char[10000];
-		int num =
-				new InputStreamReader(response.getEntity().getContent())
-						.read(cbuf);
+		new InputStreamReader(response.getEntity().getContent()).read(cbuf);
 
 		String str = new String(cbuf);
+		System.out.println(str);
+
 		assertTrue(-1 != str.indexOf("Barchart Servlet"));
 	}
 

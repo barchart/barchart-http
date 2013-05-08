@@ -181,9 +181,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 				final String method = request.getMethod().name();
 
-				final String ha1 =
-						DigestUtils.md5Hex(userName + ":" + realm + ":"
-								+ authenticator.getPassword(userName));
+				final String ha1 = authenticator.getData(userName);
 
 				String qop = headerValues.get("qop");
 

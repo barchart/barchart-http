@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -488,10 +489,10 @@ public class TestHttpServer {
 		}
 
 		@Override
-		public String getPassword(String username) {
+		public String getData(String username) {
 
 			if (username.equals("aaa"))
-				return "bbb";
+				return DigestUtils.md5Hex(username + ":barchart.com:" + "bbb");
 
 			return null;
 		}
