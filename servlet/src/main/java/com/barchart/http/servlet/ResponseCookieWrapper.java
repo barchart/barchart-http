@@ -7,17 +7,20 @@
  */
 package com.barchart.http.servlet;
 
+import io.netty.handler.codec.http.DefaultCookie;
+
 import javax.servlet.http.Cookie;
 
-public class NettyCookieWrapper extends Cookie {
+// MJS: This is used for the response
+public class ResponseCookieWrapper extends DefaultCookie {
 
-	public NettyCookieWrapper(final io.netty.handler.codec.http.Cookie cookie) {
+	public ResponseCookieWrapper(final Cookie cookie) {
 		super(cookie.getName(), cookie.getValue());
 		setComment(cookie.getComment());
 		setDomain(cookie.getDomain());
-		setMaxAge((int) cookie.getMaxAge());
+		setMaxAge(cookie.getMaxAge());
 		setPath(cookie.getPath());
-		setSecure(cookie.isSecure());
+		setSecure(cookie.getSecure());
 		setVersion(cookie.getVersion());
 	}
 

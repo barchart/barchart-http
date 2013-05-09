@@ -124,7 +124,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
 
 	@Override
 	public void addCookie(final Cookie cookie) {
-		response.setCookie(new ServletCookieWrapper(cookie));
+		response.setCookie(new ResponseCookieWrapper(cookie));
 	}
 
 	@Override

@@ -268,7 +268,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 		final List<Cookie> cookies = new ArrayList<Cookie>();
 
 		for (final io.netty.handler.codec.http.Cookie cookie : requestCookies) {
-			cookies.add(new NettyCookieWrapper(cookie));
+			cookies.add(new RequestCookieWrapper(cookie));
 		}
 
 		return cookies.toArray(new Cookie[] {});

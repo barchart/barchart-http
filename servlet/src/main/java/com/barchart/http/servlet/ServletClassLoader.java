@@ -24,7 +24,8 @@ import java.util.jar.JarInputStream;
  * @version $Revision: 1.21 $ $Date: 2010/09/29 17:21:48 $
  * @author <a href="mailto:anthony.goubard@japplis.com">Anthony Goubard</a>
  * 
- * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0
+ * @author Maurycy - modified for Netty 4.0.0 and servlet API 3.0 - Useful to
+ *         extract classes from a war file
  * 
  */
 public class ServletClassLoader {

@@ -73,7 +73,7 @@ public class LocalServletConfig implements ServletConfig {
 	public LocalServletConfig(File warFileLocation) {
 		_warFile = warFileLocation;
 		_initParameters = new Properties();
-		_context = new HttpServletContextWrapper(this);
+		_context = new ServletContextImpl(this);
 
 		try {
 			JarFile warFile = new JarFile(warFileLocation);

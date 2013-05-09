@@ -7,6 +7,7 @@
  */
 package com.barchart.http.servlet;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,6 +17,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.Filter;
@@ -43,8 +46,21 @@ public class ServletContextImpl implements ServletContext {
 
 	private final MimetypesFileTypeMap mimeTypes;
 
-	ServletContextImpl() {
+	/**
+	 * The configuration of the servlet.
+	 */
+	private final LocalServletConfig _config;
+
+	/**
+	 * The root URL for the servlet.
+	 */
+	private final String _rootURL;
+
+	ServletContextImpl(LocalServletConfig config) {
 		mimeTypes = new MimetypesFileTypeMap();
+
+		_config = config;
+		_rootURL = "jar:" + config.getWarFile().toURI().toString() + "!";
 	}
 
 	/*
@@ -83,15 +99,31 @@ public class ServletContextImpl implements ServletContext {
 	}
 
 	@Override
-	public URL getResource(final String path) throws MalformedURLException {
-		return getClass().getClassLoader().getResource(path);
+	public URL getResource(String str) throws MalformedURLException {
+		if (!str.startsWith("/")) {
+			str = "/" + str;
+		}
+		try {
+			return new URL(_rootURL + str);
+		} catch (MalformedURLException muex) {
+			log.warn(_rootURL + str);
+			return null;
+		}
 	}
 
 	@Override
-	public InputStream getResourceAsStream(final String path) {
+	public InputStream getResourceAsStream(final String str) {
 		try {
-			return getResource(path).openStream();
-		} catch (final Exception e) {
+			JarFile warFile = new JarFile(_config.getWarFile());
+			JarEntry entry = warFile.getJarEntry(str);
+			if (entry == null) {
+				log.warn(str, "No entry.");
+				return null;
+			} else {
+				return warFile.getInputStream(entry);
+			}
+		} catch (IOException ioe) {
+			log.warn(str, ioe.getMessage());
 			return null;
 		}
 	}
@@ -150,7 +182,12 @@ public class ServletContextImpl implements ServletContext {
 
 	@Override
 	public String getServerInfo() {
-		return "Barchart HTTP v1.0";
+		String osName = System.getProperty("os.name");
+		String osVersion = System.getProperty("os.version");
+		String osArch = System.getProperty("os.arch");
+		String os = osName + " " + osVersion + "/" + osArch;
+
+		return "Barchart HTTP v1.0 (" + os + ')';
 	}
 
 	@Override
