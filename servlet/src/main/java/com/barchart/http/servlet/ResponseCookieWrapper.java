@@ -23,5 +23,4 @@ public class ResponseCookieWrapper extends DefaultCookie {
 		setSecure(cookie.getSecure());
 		setVersion(cookie.getVersion());
 	}
-
 }

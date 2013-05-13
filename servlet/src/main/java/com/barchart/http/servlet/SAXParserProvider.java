@@ -48,7 +48,7 @@ public class SAXParserProvider {
 	 * The cache of <code>SAXParser</code> instances, one per thread. This field
 	 * is never <code>null</code>.
 	 */
-	private static ThreadLocal CACHE;
+	private static ThreadLocal<SAXParser> CACHE;
 
 	/**
 	 * Initializes this class.
@@ -58,7 +58,7 @@ public class SAXParserProvider {
 		SAX_PARSER_FACTORY.setNamespaceAware(true);
 		SAX_PARSER_FACTORY.setValidating(false);
 
-		CACHE = new ThreadLocal();
+		CACHE = new ThreadLocal<SAXParser>();
 	}
 
 	/**

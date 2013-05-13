@@ -1,6 +1,7 @@
 package com.barchart.servlet.example;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,15 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @SuppressWarnings("serial")
 @javax.servlet.annotation.WebServlet(urlPatterns = { "/async" }, asyncSupported = true, initParams = { @WebInitParam(name = "threadpoolsize", value = "100") })
 public class AsyncServlet extends HttpServlet {
-
-	private static final Logger log = LoggerFactory
-			.getLogger(SimpleServletListener.class);
 
 	public static final int CALLBACK_TIMEOUT = 10000; // ms
 
@@ -45,6 +40,7 @@ public class AsyncServlet extends HttpServlet {
 
 		final AsyncContext ctx = req.startAsync();
 		final HttpSession session = req.getSession();
+		final PrintWriter out = res.getWriter();
 
 		// set the timeout
 		ctx.setTimeout(CALLBACK_TIMEOUT);
@@ -55,25 +51,72 @@ public class AsyncServlet extends HttpServlet {
 			@Override
 			public void onComplete(AsyncEvent event) throws IOException {
 
-				log.info("onComplete called");
+				try {
+					out.println("<html>");
+					out.println("<head>");
+					out.println("<title>Barchart Servlet</title>");
+					out.println("</head>");
+					out.println("<body>");
+					out.println("<h1>onComplete called</h1>");
+					out.println("</body>");
+					out.println("</html>");
+
+				} finally {
+					out.close();
+				}
 			}
 
 			@Override
 			public void onTimeout(AsyncEvent event) throws IOException {
+				try {
+					out.println("<html>");
+					out.println("<head>");
+					out.println("<title>Barchart Servlet</title>");
+					out.println("</head>");
+					out.println("<body>");
+					out.println("<h1>onComplete called</h1>");
+					out.println("</body>");
+					out.println("</html>");
 
-				log.info("onTimeout called");
+				} finally {
+					out.close();
+				}
 			}
 
 			@Override
 			public void onError(AsyncEvent event) throws IOException {
 
-				log.info("onError called: " + event.toString());
+				try {
+					out.println("<html>");
+					out.println("<head>");
+					out.println("<title>Barchart Servlet</title>");
+					out.println("</head>");
+					out.println("<body>");
+					out.println("<h1>onError called</h1>");
+					out.println("</body>");
+					out.println("</html>");
+
+				} finally {
+					out.close();
+				}
 			}
 
 			@Override
 			public void onStartAsync(AsyncEvent event) throws IOException {
 
-				log.info("onStartAsync called");
+				try {
+					out.println("<html>");
+					out.println("<head>");
+					out.println("<title>Barchart Servlet</title>");
+					out.println("</head>");
+					out.println("<body>");
+					out.println("<h1>onStartAsync called</h1>");
+					out.println("</body>");
+					out.println("</html>");
+
+				} finally {
+					out.close();
+				}
 			}
 		});
 
@@ -100,18 +143,13 @@ public class AsyncServlet extends HttpServlet {
 				try {
 
 					ServletResponse response = ctx.getResponse();
+
 					if (response != null) {
 						response.getWriter().write(some_big_data);
 						ctx.complete();
-					} else {
-						throw new IllegalStateException(); // this is caught
-															// below
 					}
-				} catch (IllegalStateException ex) {
-					log.error("Request object from context is null! (nothing to worry about.)");
 
 				} catch (Exception e) {
-					log.error("ERROR IN AsyncServlet", e);
 				}
 			}
 		});

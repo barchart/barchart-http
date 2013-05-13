@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
@@ -45,7 +46,7 @@ public class ServletWrapper implements RequestHandler {
 	 */
 	public ServletWrapper(File warFile, String className) {
 
-		// create and initiliaze the Servlet
+		// create and initializee the Servlet
 		log.debug(warFile.getPath());
 
 		try {
@@ -63,6 +64,7 @@ public class ServletWrapper implements RequestHandler {
 						(HttpServlet) loader.loadClass(
 								servletConfig.getServletClass()).newInstance();
 
+			ServletConfig config = servlet.getServletConfig();
 			servlet.init(servletConfig);
 
 		} catch (Exception exception) {
@@ -81,8 +83,7 @@ public class ServletWrapper implements RequestHandler {
 	 *             if the Servlet cannot be loaded.
 	 */
 	public void initServlet(String servletClassName) throws ServletException {
-		// create and initiliaze the Servlet
-		// Log.log_1503(warFile.getPath());
+
 		try {
 			servlet =
 					(HttpServlet) Class.forName(servletClassName).newInstance();

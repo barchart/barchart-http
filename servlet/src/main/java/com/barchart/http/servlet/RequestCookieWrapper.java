@@ -22,5 +22,4 @@ public class RequestCookieWrapper extends Cookie {
 		setSecure(cookie.isSecure());
 		setVersion(cookie.getVersion());
 	}
-
 }

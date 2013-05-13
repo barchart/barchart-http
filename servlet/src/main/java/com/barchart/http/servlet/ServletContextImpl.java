@@ -92,7 +92,6 @@ public class ServletContextImpl implements ServletContext {
 		return mimeTypes.getContentType(file);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Set getResourcePaths(final String path) {
 		throw new UnsupportedOperationException();
@@ -146,7 +145,6 @@ public class ServletContextImpl implements ServletContext {
 		throw new UnsupportedOperationException();
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getServlets() {
 		// TODO
@@ -195,7 +193,6 @@ public class ServletContextImpl implements ServletContext {
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getInitParameterNames() {
 
@@ -219,7 +216,6 @@ public class ServletContextImpl implements ServletContext {
 		return attributes.get(name);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getAttributeNames() {
 

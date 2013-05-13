@@ -39,7 +39,8 @@ public class TestHttpServlet {
 	// MJS: We need separate ports since we run in parallel
 	private int port;
 
-	private TestServlet servlet;
+	private TestServlet servletSync;
+	private TestServlet servletAsync;
 
 	@Before
 	public void setUp() throws Exception {
@@ -51,8 +52,11 @@ public class TestHttpServlet {
 
 		File f = new File(url.getFile().replace("%20", " "));
 
-		servlet =
+		servletSync =
 				new TestServlet(f, "com.barchart.servlet.example.TestServlet");
+
+		servletAsync =
+				new TestServlet(f, "com.barchart.servlet.example.AsyncServlet");
 
 		port = 50000;
 
@@ -62,8 +66,9 @@ public class TestHttpServlet {
 						.parentGroup(new NioEventLoopGroup(1))
 						.childGroup(new NioEventLoopGroup(1))
 
-						// MJS: Attach the servlet
-						.requestHandler("/servlet", servlet);
+						// MJS: Attach the servlets
+						.requestHandler("/servlet", servletSync)
+						.requestHandler("/servletAsync", servletAsync);
 
 		server.configure(config).listen().sync();
 
@@ -83,6 +88,22 @@ public class TestHttpServlet {
 
 		final HttpGet get =
 				new HttpGet("http://localhost:" + port + "/servlet");
+		final HttpResponse response = client.execute(get);
+
+		char[] cbuf = new char[10000];
+		new InputStreamReader(response.getEntity().getContent()).read(cbuf);
+
+		String str = new String(cbuf);
+		System.out.println(str);
+
+		assertTrue(-1 != str.indexOf("Barchart Servlet"));
+	}
+
+	@Test
+	public void testServletAsync() throws Exception {
+
+		final HttpGet get =
+				new HttpGet("http://localhost:" + port + "/servletAsync");
 		final HttpResponse response = client.execute(get);
 
 		char[] cbuf = new char[10000];
