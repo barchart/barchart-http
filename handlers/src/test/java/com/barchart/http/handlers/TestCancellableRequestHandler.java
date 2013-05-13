@@ -36,14 +36,14 @@ import com.barchart.util.test.CallableTest;
 
 public class TestCancellableRequestHandler {
 
-	HttpServer server;
-	HttpClient client;
+	private HttpServer server;
+	private HttpClient client;
 
-	TestRequestHandler basic;
-	TestRequestHandler async;
-	TestRequestHandler asyncDelayed;
-	TestRequestHandler clientDisconnect;
-	TestRequestHandler error;
+	private TestRequestHandler basic;
+	private TestRequestHandler async;
+	private TestRequestHandler asyncDelayed;
+	private TestRequestHandler clientDisconnect;
+	private TestRequestHandler error;
 
 	@Before
 	public void setUp() throws Exception {
@@ -95,12 +95,14 @@ public class TestCancellableRequestHandler {
 
 			@Override
 			public void run() {
+				System.out.println("Aborting " + get);
 				get.abort();
 			}
 
 		}, 250, TimeUnit.MILLISECONDS);
 
 		try {
+			System.out.println("Executing " + get);
 			client.execute(get);
 		} catch (final Exception e) {
 		}
@@ -149,6 +151,7 @@ public class TestCancellableRequestHandler {
 		public void onRequest(final ServerRequest request,
 				final ServerResponse response) throws IOException {
 
+			System.out.println("Got " + request);
 			requests.incrementAndGet();
 
 			final Runnable task = response(response);
