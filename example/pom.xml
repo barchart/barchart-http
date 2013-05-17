@@ -14,6 +14,13 @@
 	<version>0.0.1</version>
 	<packaging>war</packaging>
 
+	<scm>
+		<url>https://github.com/barchart/barchart-http</url>
+		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
+		<tag>master</tag>
+	</scm>
+
 	<repositories>
 	
 		<repository>
@@ -50,8 +57,4 @@
 		</plugins>
 	</build>
 
-
-  <scm>
-    <tag>barchart-http-example-0.0.1</tag>
-  </scm>
 </project>

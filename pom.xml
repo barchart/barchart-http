@@ -27,6 +27,13 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 ]]>
 	</description>
 
+	<scm>
+		<url>https://github.com/barchart/barchart-http</url>
+		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
+		<tag>master</tag>
+	</scm>
+
 	<modules>
 		<module>archon</module>
 		<module>server</module>

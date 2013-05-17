@@ -30,7 +30,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<url>https://github.com/barchart/barchart-http</url>
 		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
-		<tag>barchart-http-server-1.1.10</tag>
+		<tag>master</tag>
 	</scm>
 
 	<dependencies>
