@@ -7,7 +7,7 @@
  */
 package com.barchart.http.servlet;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.File;
@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 
 import com.barchart.http.server.HttpServer;
 import com.barchart.http.server.HttpServerConfig;
-import com.barchart.session.host.MultiThreadedRunner;
+import com.barchart.util.test.junit.MultiThreadedRunner;
 
 // MJS: We run it in parallel to stress the server more and also to take advantage of multiple cores for speed
 @RunWith(MultiThreadedRunner.class)
@@ -48,27 +48,27 @@ public class TestHttpServlet {
 		server = new HttpServer();
 
 		// MJS: Best way to access a resource for unit testing I found so far
-		URL url = this.getClass().getResource("barchart-servlet-example.war");
+		final URL url = this.getClass().getResource(
+				"barchart-servlet-example.war");
 
-		File f = new File(url.getFile().replace("%20", " "));
+		final File f = new File(url.getFile().replace("%20", " "));
 
-		servletSync =
-				new TestServlet(f, "com.barchart.servlet.example.TestServlet");
+		servletSync = new TestServlet(f,
+				"com.barchart.servlet.example.TestServlet");
 
-		servletAsync =
-				new TestServlet(f, "com.barchart.servlet.example.AsyncServlet");
+		servletAsync = new TestServlet(f,
+				"com.barchart.servlet.example.AsyncServlet");
 
 		port = 50000;
 
-		final HttpServerConfig config =
-				new HttpServerConfig()
-						.address(new InetSocketAddress("localhost", port))
-						.parentGroup(new NioEventLoopGroup(1))
-						.childGroup(new NioEventLoopGroup(1))
+		final HttpServerConfig config = new HttpServerConfig()
+				.address(new InetSocketAddress("localhost", port))
+				.parentGroup(new NioEventLoopGroup(1))
+				.childGroup(new NioEventLoopGroup(1))
 
-						// MJS: Attach the servlets
-						.requestHandler("/servlet", servletSync)
-						.requestHandler("/servletAsync", servletAsync);
+				// MJS: Attach the servlets
+				.requestHandler("/servlet", servletSync)
+				.requestHandler("/servletAsync", servletAsync);
 
 		server.configure(config).listen().sync();
 
@@ -86,14 +86,13 @@ public class TestHttpServlet {
 	@Test
 	public void testServlet() throws Exception {
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/servlet");
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/servlet");
 		final HttpResponse response = client.execute(get);
 
-		char[] cbuf = new char[10000];
+		final char[] cbuf = new char[10000];
 		new InputStreamReader(response.getEntity().getContent()).read(cbuf);
 
-		String str = new String(cbuf);
+		final String str = new String(cbuf);
 		System.out.println(str);
 
 		assertTrue(-1 != str.indexOf("Barchart Servlet"));
@@ -102,14 +101,14 @@ public class TestHttpServlet {
 	@Test
 	public void testServletAsync() throws Exception {
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/servletAsync");
+		final HttpGet get = new HttpGet("http://localhost:" + port
+				+ "/servletAsync");
 		final HttpResponse response = client.execute(get);
 
-		char[] cbuf = new char[10000];
+		final char[] cbuf = new char[10000];
 		new InputStreamReader(response.getEntity().getContent()).read(cbuf);
 
-		String str = new String(cbuf);
+		final String str = new String(cbuf);
 		System.out.println(str);
 
 		assertTrue(-1 != str.indexOf("Barchart Servlet"));
@@ -117,7 +116,7 @@ public class TestHttpServlet {
 
 	private class TestServlet extends ServletWrapper {
 
-		TestServlet(File warFile, String className) {
+		TestServlet(final File warFile, final String className) {
 			super(warFile, className);
 		}
 

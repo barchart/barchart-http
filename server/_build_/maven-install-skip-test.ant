@@ -27,8 +27,12 @@
 
 			<arg value="-DskipTests" />
 
+			<arg value="-U" />
+
+			<arg value="-e" />
+
 		</exec>
-		
+
 	</target>
 
 </project>

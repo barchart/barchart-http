@@ -7,8 +7,7 @@
  */
 package com.barchart.http.handlers;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.IOException;
@@ -32,7 +31,7 @@ import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 import com.barchart.http.server.HttpServer;
 import com.barchart.http.server.HttpServerConfig;
-import com.barchart.util.test.CallableTest;
+import com.barchart.util.test.concurrent.CallableTest;
 
 public class TestCancellableRequestHandler {
 
@@ -52,22 +51,21 @@ public class TestCancellableRequestHandler {
 
 		basic = new TestRequestHandler("basic", false, 0, 0, false);
 		async = new TestRequestHandler("async", true, 0, 0, false);
-		asyncDelayed =
-				new TestRequestHandler("async-delayed", true, 50, 0, false);
-		clientDisconnect =
-				new TestRequestHandler("client-disconnect", true, 500, 500,
-						false);
+		asyncDelayed = new TestRequestHandler("async-delayed", true, 50, 0,
+				false);
+		clientDisconnect = new TestRequestHandler("client-disconnect", true,
+				500, 500, false);
 		error = new TestRequestHandler("error", false, 0, 0, true);
 
-		final HttpServerConfig config =
-				new HttpServerConfig().requestHandler("/basic", basic)
-						.address(new InetSocketAddress("localhost", 8888))
-						.parentGroup(new NioEventLoopGroup(1))
-						.childGroup(new NioEventLoopGroup(1))
-						.requestHandler("/async", async)
-						.requestHandler("/async-delayed", asyncDelayed)
-						.requestHandler("/client-disconnect", clientDisconnect)
-						.requestHandler("/error", error).maxConnections(1);
+		final HttpServerConfig config = new HttpServerConfig()
+				.requestHandler("/basic", basic)
+				.address(new InetSocketAddress("localhost", 8888))
+				.parentGroup(new NioEventLoopGroup(1))
+				.childGroup(new NioEventLoopGroup(1))
+				.requestHandler("/async", async)
+				.requestHandler("/async-delayed", asyncDelayed)
+				.requestHandler("/client-disconnect", clientDisconnect)
+				.requestHandler("/error", error).maxConnections(1);
 
 		server.configure(config).listen().sync();
 
@@ -85,11 +83,11 @@ public class TestCancellableRequestHandler {
 	@Test
 	public void testCancellableRequest() throws Exception {
 
-		final ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(1);
+		final ScheduledExecutorService executor = Executors
+				.newScheduledThreadPool(1);
 
-		final HttpGet get =
-				new HttpGet("http://localhost:8888/client-disconnect");
+		final HttpGet get = new HttpGet(
+				"http://localhost:8888/client-disconnect");
 
 		executor.schedule(new Runnable() {
 
@@ -158,8 +156,8 @@ public class TestCancellableRequestHandler {
 
 			if (async) {
 				response.suspend();
-				lastFuture =
-						executor.schedule(task, execTime, TimeUnit.MILLISECONDS);
+				lastFuture = executor.schedule(task, execTime,
+						TimeUnit.MILLISECONDS);
 				cancelOnAbort(request, response, lastFuture);
 			} else {
 				task.run();

@@ -7,10 +7,7 @@
  */
 package com.barchart.http.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.BufferedReader;
@@ -51,7 +48,7 @@ import org.junit.runner.RunWith;
 import com.barchart.http.auth.Authenticator;
 import com.barchart.http.auth.BasicAuthorizationHandler;
 import com.barchart.http.auth.DigestAuthorizationHandler;
-import com.barchart.session.host.MultiThreadedRunner;
+import com.barchart.util.test.junit.MultiThreadedRunner;
 
 // MJS: We run it in parallel to stress the server more and also to take advantage of multiple cores for speed
 @RunWith(MultiThreadedRunner.class)
@@ -92,33 +89,30 @@ public class TestHttpServer {
 
 		basic = new TestRequestHandler("basic", false, 0, 0, false, false);
 		async = new TestRequestHandler("async", true, 0, 0, false, false);
-		asyncDelayed =
-				new TestRequestHandler("async-delayed", true, 50, 0, false,
-						false);
-		clientDisconnect =
-				new TestRequestHandler("", true, 500, 500, false, false);
+		asyncDelayed = new TestRequestHandler("async-delayed", true, 50, 0,
+				false, false);
+		clientDisconnect = new TestRequestHandler("", true, 500, 500, false,
+				false);
 		error = new TestRequestHandler("error", false, 0, 0, true, false);
-		channelError =
-				new TestRequestHandler("channel-error", false, 0, 0, false,
-						true);
+		channelError = new TestRequestHandler("channel-error", false, 0, 0,
+				false, true);
 
 		port = ports.getAndIncrement();
 		testAuthenticator = new TestAuthenticator();
 
-		final HttpServerConfig config =
-				new HttpServerConfig()
-						.requestHandler("/basic", basic)
-						.address(new InetSocketAddress("localhost", port))
-						.parentGroup(new NioEventLoopGroup(1))
-						.childGroup(new NioEventLoopGroup(1))
+		final HttpServerConfig config = new HttpServerConfig()
+				.requestHandler("/basic", basic)
+				.address(new InetSocketAddress("localhost", port))
+				.parentGroup(new NioEventLoopGroup(1))
+				.childGroup(new NioEventLoopGroup(1))
 
-						// MJS: Request handlers are attached to resources
+				// MJS: Request handlers are attached to resources
 
-						.requestHandler("/async", async)
-						.requestHandler("/async-delayed", asyncDelayed)
-						.requestHandler("/client-disconnect", clientDisconnect)
-						.requestHandler("/channel-error", channelError)
-						.requestHandler("/error", error).maxConnections(1);
+				.requestHandler("/async", async)
+				.requestHandler("/async-delayed", asyncDelayed)
+				.requestHandler("/client-disconnect", clientDisconnect)
+				.requestHandler("/channel-error", channelError)
+				.requestHandler("/error", error).maxConnections(1);
 
 		server.configure(config).listen().sync();
 
@@ -137,12 +131,11 @@ public class TestHttpServer {
 	public void testBasicRequest() throws Exception {
 
 		for (int i = 0; i < 100; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpGet get = new HttpGet("http://localhost:" + port
+					+ "/basic");
 			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine().trim();
 
 			assertEquals("basic", content);
 		}
@@ -159,8 +152,8 @@ public class TestHttpServer {
 
 		// MJS: Right login/password
 		for (int i = 0; i < 10; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpGet get = new HttpGet("http://localhost:" + port
+					+ "/basic");
 
 			// MJS: We stick the wrong authentication in the header
 			get.addHeader(BasicScheme.authenticate(
@@ -168,17 +161,16 @@ public class TestHttpServer {
 					false));
 
 			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine().trim();
 			assertEquals("basic", content);
 			assertEquals(202, response.getStatusLine().getStatusCode());
 		}
 
 		// MJS: Wrong login/password so reject
 		{
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpGet get = new HttpGet("http://localhost:" + port
+					+ "/basic");
 
 			// MJS: We stick the wrong authentication in the header
 			get.addHeader(BasicScheme.authenticate(
@@ -186,17 +178,16 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine();
 			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 
 		// MJS: No authentication so automatic reject - We also loop around to
 		// see if there are any leaks connected to the reject issue
 		for (int i = 0; i < 10; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpGet get = new HttpGet("http://localhost:" + port
+					+ "/basic");
 
 			// MJS: We stick the wrong authentication in the header
 			get.addHeader(BasicScheme.authenticate(
@@ -204,9 +195,8 @@ public class TestHttpServer {
 					"UTF-8", false));
 
 			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine();
 			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 	}
@@ -238,10 +228,11 @@ public class TestHttpServer {
 		authCache.put(targetHost, digestAuth);
 
 		// Add AuthCache to the execution context
-		BasicHttpContext localcontext = new BasicHttpContext();
+		final BasicHttpContext localcontext = new BasicHttpContext();
 		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-		HttpGet httpget = new HttpGet("http://localhost:" + port + "/basic");
+		final HttpGet httpget = new HttpGet("http://localhost:" + port
+				+ "/basic");
 
 		// MJS: Below is how a Digest request is setup and made, more elaborate
 		// compared to a Basic one but the security is way better
@@ -253,12 +244,11 @@ public class TestHttpServer {
 					new AuthScope("localhost", port),
 					new UsernamePasswordCredentials(userName, password));
 
-			final HttpResponse response =
-					client.execute(targetHost, httpget, localcontext);
+			final HttpResponse response = client.execute(targetHost, httpget,
+					localcontext);
 
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine().trim();
 			assertEquals(202, response.getStatusLine().getStatusCode());
 			assertEquals("basic", content);
 		}
@@ -270,12 +260,11 @@ public class TestHttpServer {
 					new AuthScope("localhost", port),
 					new UsernamePasswordCredentials(userName, password));
 
-			final HttpResponse response =
-					client.execute(targetHost, httpget, localcontext);
+			final HttpResponse response = client.execute(targetHost, httpget,
+					localcontext);
 
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
+			final String content = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent())).readLine().trim();
 			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 	}
@@ -285,9 +274,8 @@ public class TestHttpServer {
 
 		final HttpGet get = new HttpGet("http://localhost:" + port + "/async");
 		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		final String content = new BufferedReader(new InputStreamReader(
+				response.getEntity().getContent())).readLine().trim();
 
 		assertNotNull(async.lastFuture);
 		assertFalse(async.lastFuture.isCancelled());
@@ -298,12 +286,11 @@ public class TestHttpServer {
 	@Test
 	public void testAsyncDelayedRequest() throws Exception {
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/async-delayed");
+		final HttpGet get = new HttpGet("http://localhost:" + port
+				+ "/async-delayed");
 		final HttpResponse response = client.execute(get);
-		final String content =
-				new BufferedReader(new InputStreamReader(response.getEntity()
-						.getContent())).readLine().trim();
+		final String content = new BufferedReader(new InputStreamReader(
+				response.getEntity().getContent())).readLine().trim();
 
 		assertNotNull(asyncDelayed.lastFuture);
 		assertFalse(asyncDelayed.lastFuture.isCancelled());
@@ -314,8 +301,7 @@ public class TestHttpServer {
 	@Test
 	public void testUnknownHandler() throws Exception {
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/unknown");
+		final HttpGet get = new HttpGet("http://localhost:" + port + "/unknown");
 		final HttpResponse response = client.execute(get);
 		assertEquals(404, response.getStatusLine().getStatusCode());
 
@@ -334,8 +320,8 @@ public class TestHttpServer {
 	public void testReuseRequest() throws Exception {
 
 		// Parameters were being remembered between requests in pooled objects
-		HttpGet get =
-				new HttpGet("http://localhost:" + port + "/basic?field=value");
+		HttpGet get = new HttpGet("http://localhost:" + port
+				+ "/basic?field=value");
 		HttpResponse response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		EntityUtils.consume(response.getEntity());
@@ -358,8 +344,8 @@ public class TestHttpServer {
 
 		// New Beta3 was failing on second request due to shared buffer use
 		for (int i = 0; i < 100; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
+			final HttpGet get = new HttpGet("http://localhost:" + port
+					+ "/basic");
 			final HttpResponse response = client.execute(get);
 			assertEquals(200, response.getStatusLine().getStatusCode());
 			EntityUtils.consume(response.getEntity());
@@ -376,9 +362,8 @@ public class TestHttpServer {
 			@Override
 			public void run() {
 				try {
-					final HttpResponse response =
-							client.execute(new HttpGet("http://localhost:"
-									+ port + "/client-disconnect"));
+					final HttpResponse response = client.execute(new HttpGet(
+							"http://localhost:" + port + "/client-disconnect"));
 					status.add(response.getStatusLine().getStatusCode());
 				} catch (final Exception e) {
 					e.printStackTrace();
@@ -404,8 +389,8 @@ public class TestHttpServer {
 	@Test
 	public void testShutdown() throws Exception {
 
-		final ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(1);
+		final ScheduledExecutorService executor = Executors
+				.newScheduledThreadPool(1);
 
 		final AtomicBoolean pass = new AtomicBoolean(false);
 
@@ -433,8 +418,8 @@ public class TestHttpServer {
 
 		}, 1000, TimeUnit.MILLISECONDS);
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/client-disconnect");
+		final HttpGet get = new HttpGet("http://localhost:" + port
+				+ "/client-disconnect");
 		final HttpResponse response = client.execute(get);
 		assertEquals(200, response.getStatusLine().getStatusCode());
 		// assertTrue(pass.get());
@@ -444,8 +429,8 @@ public class TestHttpServer {
 	@Test(expected = HttpHostConnectException.class)
 	public void testKill() throws Exception {
 
-		final ScheduledExecutorService executor =
-				Executors.newScheduledThreadPool(1);
+		final ScheduledExecutorService executor = Executors
+				.newScheduledThreadPool(1);
 
 		executor.schedule(new Runnable() {
 
@@ -456,8 +441,8 @@ public class TestHttpServer {
 
 		}, 500, TimeUnit.MILLISECONDS);
 
-		final HttpGet get =
-				new HttpGet("http://localhost:" + port + "/client-disconnect");
+		final HttpGet get = new HttpGet("http://localhost:" + port
+				+ "/client-disconnect");
 
 		// Should throw exception
 		client.execute(get);
@@ -476,12 +461,12 @@ public class TestHttpServer {
 	private class TestAuthenticator implements Authenticator {
 
 		@Override
-		public boolean authenticate(String username, String password) {
+		public boolean authenticate(final String username, final String password) {
 			return username.equals("aaa") && password.equals("bbb");
 		}
 
 		@Override
-		public String getData(String username) {
+		public String getData(final String username) {
 
 			// MJS: In a real server a DB containing the hashes would be used to
 			// shield the real passwords. Only brute force could reveal those

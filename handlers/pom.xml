@@ -50,8 +50,8 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 
 		<dependency>
 			<groupId>com.barchart.util</groupId>
-			<version>[2,3)</version>
 			<artifactId>barchart-util-test</artifactId>
+			<version>[3,4)</version>
 			<scope>test</scope>
 		</dependency>
 
