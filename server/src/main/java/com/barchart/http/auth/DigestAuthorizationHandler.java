@@ -69,20 +69,20 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	 * Gets the Authorization header string minus the "AuthType" and returns a
 	 * hashMap of keys and values
 	 */
-	private HashMap<String, String> parseHeader(String headerString) {
+	private HashMap<String, String> parseHeader(final String headerString) {
 
-		String headerStringWithoutScheme =
-				headerString.substring(headerString.indexOf(" ") + 1).trim();
+		final String headerStringWithoutScheme = headerString.substring(
+				headerString.indexOf(" ") + 1).trim();
 
-		HashMap<String, String> values = new HashMap<String, String>();
+		final HashMap<String, String> values = new HashMap<String, String>();
 
-		String keyValueArray[] = headerStringWithoutScheme.split(",");
+		final String keyValueArray[] = headerStringWithoutScheme.split(",");
 
-		for (String keyval : keyValueArray) {
+		for (final String keyval : keyValueArray) {
 
 			if (keyval.contains("=")) {
-				String key = keyval.substring(0, keyval.indexOf("="));
-				String value = keyval.substring(keyval.indexOf("=") + 1);
+				final String key = keyval.substring(0, keyval.indexOf("="));
+				final String value = keyval.substring(keyval.indexOf("=") + 1);
 				values.put(key.trim(), value.replaceAll("\"", "").trim());
 			}
 		}
@@ -95,15 +95,15 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	 * random seed
 	 */
 	public String calculateNonce() {
-		Date d = new Date();
-		SimpleDateFormat f = new SimpleDateFormat("yyyy:MM:dd:hh:mm:ss");
-		String fmtDate = f.format(d);
+		final Date d = new Date();
+		final SimpleDateFormat f = new SimpleDateFormat("yyyy:MM:dd:hh:mm:ss");
+		final String fmtDate = f.format(d);
 
-		Integer randomInt = random.nextInt();
+		final Integer randomInt = random.nextInt();
 		return DigestUtils.md5Hex(fmtDate + randomInt.toString());
 	}
 
-	private String getOpaque(String domain, String nonce) {
+	private String getOpaque(final String domain, final String nonce) {
 		return DigestUtils.md5Hex(domain + nonce);
 	}
 
@@ -114,15 +114,16 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	 * @return
 	 * @throws IOException
 	 */
-	private String readRequestBody(ServerRequest request) throws IOException {
-		StringBuilder stringBuilder = new StringBuilder();
+	private String readRequestBody(final ServerRequest request)
+			throws IOException {
+		final StringBuilder stringBuilder = new StringBuilder();
 		BufferedReader bufferedReader = null;
 		try {
-			InputStream inputStream = request.getInputStream();
+			final InputStream inputStream = request.getInputStream();
 			if (inputStream != null) {
-				bufferedReader =
-						new BufferedReader(new InputStreamReader(inputStream));
-				char[] charBuffer = new char[128];
+				bufferedReader = new BufferedReader(new InputStreamReader(
+						inputStream));
+				final char[] charBuffer = new char[128];
 				int bytesRead = -1;
 				while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
 					stringBuilder.append(charBuffer, 0, bytesRead);
@@ -130,18 +131,18 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 			} else {
 				stringBuilder.append("");
 			}
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			throw ex;
 		} finally {
 			if (bufferedReader != null) {
 				try {
 					bufferedReader.close();
-				} catch (IOException ex) {
+				} catch (final IOException ex) {
 					throw ex;
 				}
 			}
 		}
-		String body = stringBuilder.toString();
+		final String body = stringBuilder.toString();
 		return body;
 	}
 
@@ -157,10 +158,10 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 	}
 
 	@Override
-	public void authenticate(ServerRequest request, ServerResponse response)
-			throws IOException {
+	public void authenticate(final ServerRequest request,
+			final ServerResponse response) throws IOException {
 
-		String requestBody = readRequestBody(request);
+		final String requestBody = readRequestBody(request);
 
 		final String authHeader = request.headers().get("Authorization");
 
@@ -174,8 +175,7 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 				// parse the values of the Authentication header into a
 				// hashmap
-				final HashMap<String, String> headerValues =
-						parseHeader(authHeader);
+				final HashMap<String, String> headerValues = parseHeader(authHeader);
 
 				final String userName = headerValues.get("username");
 
@@ -183,17 +183,17 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 
 				final String ha1 = authenticator.getData(userName);
 
-				String qop = headerValues.get("qop");
+				final String qop = headerValues.get("qop");
 
 				String ha2;
 
-				String reqURI = headerValues.get("uri");
+				final String reqURI = headerValues.get("uri");
 
 				if (qop != null && qop.equals("auth-int")) {
-					String entityBodyMd5 = DigestUtils.md5Hex(requestBody);
-					ha2 =
-							DigestUtils.md5Hex(method + ":" + reqURI + ":"
-									+ entityBodyMd5);
+					final String entityBodyMd5 = DigestUtils
+							.md5Hex(requestBody);
+					ha2 = DigestUtils.md5Hex(method + ":" + reqURI + ":"
+							+ entityBodyMd5);
 				} else {
 					ha2 = DigestUtils.md5Hex(method + ":" + reqURI);
 				}
@@ -201,21 +201,20 @@ public class DigestAuthorizationHandler implements AuthorizationHandler {
 				String serverResponse;
 
 				if (qop == null || "".equals(qop)) {
-					serverResponse =
-							DigestUtils.md5Hex(ha1 + ":" + nonce + ":" + ha2);
+					serverResponse = DigestUtils.md5Hex(ha1 + ":" + nonce + ":"
+							+ ha2);
 
 				} else {
-					String nonceCount = headerValues.get("nc");
-					String clientNonce = headerValues.get("cnonce");
+					final String nonceCount = headerValues.get("nc");
+					final String clientNonce = headerValues.get("cnonce");
 
-					serverResponse =
-							DigestUtils.md5Hex(ha1 + ":" + nonce + ":"
-									+ nonceCount + ":" + clientNonce + ":"
-									+ qop + ":" + ha2);
+					serverResponse = DigestUtils.md5Hex(ha1 + ":" + nonce + ":"
+							+ nonceCount + ":" + clientNonce + ":" + qop + ":"
+							+ ha2);
 
 				}
 
-				String clientResponse = headerValues.get("response");
+				final String clientResponse = headerValues.get("response");
 
 				if (!serverResponse.equals(clientResponse)) {
 					response.headers().set(Names.WWW_AUTHENTICATE,

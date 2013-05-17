@@ -18,9 +18,12 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Encapsulates a response to an inbound ServerRequest.
  */
+@ProviderType
 public interface ServerResponse extends ServerMessage, HttpResponse {
 
 	@Override
@@ -32,106 +35,106 @@ public interface ServerResponse extends ServerMessage, HttpResponse {
 	@Override
 	ServerResponse setProtocolVersion(HttpVersion version);
 
-	public boolean isChunkedEncoding();
+	boolean isChunkedEncoding();
 
-	public void setChunkedEncoding(final boolean chunked);
-
-	/**
-	 * Send a cookie to the client.
-	 */
-	public void setCookie(Cookie cookie);
+	void setChunkedEncoding(final boolean chunked);
 
 	/**
 	 * Send a cookie to the client.
 	 */
-	public void setCookie(String name, String value);
+	void setCookie(Cookie cookie);
+
+	/**
+	 * Send a cookie to the client.
+	 */
+	void setCookie(String name, String value);
 
 	/**
 	 * Set the character encoding for this response (default is UTF-8).
 	 */
-	public void setCharacterEncoding(String charSet);
+	void setCharacterEncoding(String charSet);
 
 	/**
 	 * Set the character encoding for this response (default is UTF-8).
 	 */
-	public Charset getCharacterEncoding();
+	Charset getCharacterEncoding();
 
 	/**
 	 * Set the content-length for this response. This is set automatically by
 	 * default if chunked transfer encoding is not active.
 	 */
-	public void setContentLength(int length);
+	void setContentLength(int length);
 
 	/**
 	 * Set the response content MIME type.
 	 */
-	public void setContentType(String mimeType);
+	void setContentType(String mimeType);
 
 	/**
 	 * Send a URL redirect to the client.
 	 */
-	public void sendRedirect(String location);
+	void sendRedirect(String location);
 
 	/**
 	 * Get the raw output stream for writing to the client. Note that unless
 	 * chunked transfer encoding is turned on, all output will still be
 	 * buffered.
 	 */
-	public OutputStream getOutputStream();
+	OutputStream getOutputStream();
 
 	/**
 	 * Get a writer that writes data directly to the client. Note that unless
 	 * chunked transfer encoding is turned on, all output will still be
 	 * buffered.
 	 */
-	public Writer getWriter();
+	Writer getWriter();
 
 	/**
 	 * Write a string to the client.
 	 */
-	public void write(String data) throws IOException;
+	void write(String data) throws IOException;
 
 	/**
 	 * Write a byte stream to the client.
 	 */
-	public void write(byte[] data) throws IOException;
+	void write(byte[] data) throws IOException;
 
 	/**
 	 * Write a byte stream to the client.
 	 */
-	public void write(byte[] data, int offset, int length) throws IOException;
+	void write(byte[] data, int offset, int length) throws IOException;
 
 	/**
 	 * Get the number of bytes written to the client for this response.
 	 */
-	public long writtenBytes();
+	long writtenBytes();
 
 	/**
 	 * Flush the output buffers. Buffers are flushed automatically, and this
 	 * should not usually be necessary.
 	 */
-	public void flush() throws IOException;
+	void flush() throws IOException;
 
 	/**
 	 * Mark the request as suspended for future asynchronous responses, which
 	 * prevents the framework from closing the response prematurely.
 	 */
-	public void suspend();
+	void suspend();
 
 	/**
 	 * Check if this response has been suspended.
 	 */
-	public boolean isSuspended();
+	boolean isSuspended();
 
 	/**
 	 * Mark this response as finished, and release any resources associated with
 	 * it.
 	 */
-	public ChannelFuture finish() throws IOException;
+	ChannelFuture finish() throws IOException;
 
 	/**
 	 * Check if this response has been finished.
 	 */
-	public boolean isFinished();
+	boolean isFinished();
 
 }

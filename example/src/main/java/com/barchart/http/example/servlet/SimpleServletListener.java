@@ -4,7 +4,7 @@
  * Copyright 2013 Barchart Inc.
  * 
  */
-package com.barchart.servlet.example;
+package com.barchart.http.example.servlet;
 
 import javax.servlet.ServletContextAttributeEvent;
 import javax.servlet.ServletContextAttributeListener;

@@ -7,11 +7,14 @@
  */
 package com.barchart.http.request;
 
+import aQute.bnd.annotation.ConsumerType;
+
+@ConsumerType
 public interface RequestURLMapper {
 
 	/**
 	 * Find the correct request handler for the given request URI.
 	 */
-	public RequestHandlerMapping getHandlerFor(String uri);
+	RequestHandlerMapping getHandlerFor(String uri);
 
 }

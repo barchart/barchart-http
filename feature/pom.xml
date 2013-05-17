@@ -5,15 +5,16 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.barchart.http</groupId>
-		<artifactId>barchart-http-archon</artifactId>
-		<version>1.1.9</version>
-		<relativePath>../archon</relativePath>
+		<groupId>com.barchart.base</groupId>
+		<artifactId>barchart-archon</artifactId>
+		<version>2.5.10</version>
+		<relativePath />
 	</parent>
 
+	<groupId>com.barchart.http</groupId>
 	<artifactId>barchart-http-feature</artifactId>
-	<version>1.1.9-SNAPSHOT</version>
-	<packaging>feature</packaging>
+	<version>2.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
 	<description>
 <![CDATA[
@@ -39,24 +40,26 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<tag>master</tag>
 	</scm>
 
+	<properties>
+
+		<!-- Feature file name must be based on artifact id and version. -->
+		<!-- Use "xml" extension for standard deployer, "repository" for custom. -->
+		<featureFile>${project.artifactId}-${project.version}.repository</featureFile>
+
+	</properties>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>com.barchart.http</groupId>
-			<artifactId>barchart-http-server</artifactId>
-			<version>1.1.8</version>
+			<artifactId>barchart-http-handlers</artifactId>
+			<version>[2-SNAPSHOT,3)</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.barchart.http</groupId>
 			<artifactId>barchart-http-servlet</artifactId>
-			<version>1.1.8</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.barchart.http</groupId>
-			<artifactId>barchart-http-handlers</artifactId>
-			<version>1.1.8</version>
+			<version>[2-SNAPSHOT,3)</version>
 		</dependency>
 
 	</dependencies>
@@ -66,56 +69,26 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<plugins>
 
 			<plugin>
+				<!-- Barchart custom plugin. -->
 				<groupId>org.apache.karaf.tooling</groupId>
 				<artifactId>karaf-maven-plugin</artifactId>
-				<version>3.0.0.RC1</version>
-				<extensions>true</extensions>
+				<version>3.0.0-build004</version>
 				<configuration>
 					<installMode>auto</installMode>
 					<startLevel>90</startLevel>
+					<outputFile>target/feature/${featureFile}</outputFile>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>features-generate-semantic</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
 
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.apache.karaf.tooling
-										</groupId>
-										<artifactId>
-											karaf-maven-plugin
-										</artifactId>
-										<versionRange>
-											[3.0.0.RC1,)
-										</versionRange>
-										<goals>
-											<goal>
-												features-generate-descriptor
-											</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 
 </project>

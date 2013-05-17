@@ -9,6 +9,8 @@ package com.barchart.http.auth;
 
 import java.io.IOException;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
@@ -16,6 +18,7 @@ import com.barchart.http.request.ServerResponse;
  * Simplified version of Request Handler is used for authorizations
  * 
  */
+@ProviderType
 public interface AuthorizationHandler {
 
 	/**

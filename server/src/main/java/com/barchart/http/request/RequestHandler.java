@@ -9,22 +9,25 @@ package com.barchart.http.request;
 
 import java.io.IOException;
 
+import aQute.bnd.annotation.ConsumerType;
+
 /**
  * Inbound request handler.
  */
+@ConsumerType
 public interface RequestHandler {
 
 	/**
 	 * Called when a new request is received from the client.
 	 */
-	public void onRequest(ServerRequest request, ServerResponse response)
+	void onRequest(ServerRequest request, ServerResponse response)
 			throws IOException;
 
 	/**
 	 * Called when the request encounters an exception, either in the pipeline
 	 * or as part of async processing.
 	 */
-	public void onException(ServerRequest request, ServerResponse response,
+	void onException(ServerRequest request, ServerResponse response,
 			Throwable exception);
 
 	/**
@@ -32,13 +35,13 @@ public interface RequestHandler {
 	 * Attempting to write to the response object after this method has been
 	 * called will always throw exceptions.
 	 */
-	public void onAbort(ServerRequest request, ServerResponse response);
+	void onAbort(ServerRequest request, ServerResponse response);
 
 	/**
 	 * Called when the current request is completed. This method will always be
 	 * called, even if the request is aborted or an exception is thrown, so
 	 * should not be taken as an indication of request success or failure.
 	 */
-	public void onComplete(ServerRequest request, ServerResponse response);
+	void onComplete(ServerRequest request, ServerResponse response);
 
 }

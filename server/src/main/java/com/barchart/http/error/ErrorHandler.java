@@ -9,12 +9,15 @@ package com.barchart.http.error;
 
 import java.io.IOException;
 
+import aQute.bnd.annotation.ConsumerType;
+
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
 /**
  * Error handler for failed requests.
  */
+@ConsumerType
 public interface ErrorHandler {
 
 	/**

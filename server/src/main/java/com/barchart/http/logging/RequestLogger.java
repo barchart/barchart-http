@@ -7,12 +7,15 @@
  */
 package com.barchart.http.logging;
 
+import aQute.bnd.annotation.ConsumerType;
+
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
 /**
  * HTTP request logging API.
  */
+@ConsumerType
 public interface RequestLogger {
 
 	/**

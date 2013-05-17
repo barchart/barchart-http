@@ -5,7 +5,7 @@
  * 
  */
 
-package com.barchart.servlet.example;
+package com.barchart.http.example.servlet;
 
 import java.io.IOException;
 import java.util.Calendar;

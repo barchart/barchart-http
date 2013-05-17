@@ -19,9 +19,12 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Information about an inbound request.
  */
+@ProviderType
 public interface ServerRequest extends ServerMessage, HttpRequest {
 
 	/* Request metadata */
@@ -30,7 +33,7 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	 * The request method.
 	 */
 	@Override
-	public HttpMethod getMethod();
+	HttpMethod getMethod();
 
 	@Override
 	ServerRequest setProtocolVersion(HttpVersion version);
@@ -41,7 +44,7 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	@Override
 	ServerRequest setUri(String uri);
 
-	public boolean isChunkedEncoding();
+	boolean isChunkedEncoding();
 
 	/**
 	 * The request URI
@@ -52,105 +55,105 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	/**
 	 * The request query string.
 	 */
-	public String getQueryString();
+	String getQueryString();
 
 	/**
 	 * The base URI for this request handler.
 	 */
-	public String getHandlerUri();
+	String getHandlerUri();
 
 	/**
 	 * The extra path info after the base URI (see getHandlerUri()).
 	 */
-	public String getPathInfo();
+	String getPathInfo();
 
 	/**
 	 * The protocol scheme (http, https, etc)
 	 */
-	public String getScheme();
+	String getScheme();
 
 	/**
 	 * The authenticated user for this request. Authentication is done via an
 	 * AuthorizationHandler.
 	 */
-	public String getRemoteUser();
+	String getRemoteUser();
 
 	/**
 	 * The server hostname of this request.
 	 */
-	public String getServerHost();
+	String getServerHost();
 
 	/**
 	 * The local IP address of the server.
 	 */
-	public InetSocketAddress getServerAddress();
+	InetSocketAddress getServerAddress();
 
 	/**
 	 * The remote client's IP address.
 	 */
-	public InetSocketAddress getRemoteAddress();
+	InetSocketAddress getRemoteAddress();
 
 	/**
 	 * True if connection is encrypted (SSL).
 	 */
-	public boolean isSecure();
+	boolean isSecure();
 
 	/* Request parameters */
 
 	/**
 	 * A map of parsed query string parameters.
 	 */
-	public Map<String, List<String>> getParameters();
+	Map<String, List<String>> getParameters();
 
 	/**
 	 * Get a single query parameter by name.
 	 */
-	public String getParameter(String name);
+	String getParameter(String name);
 
 	/**
 	 * Get a multi-value query parameter by name.
 	 */
-	public List<String> getParameterList(String name);
+	List<String> getParameterList(String name);
 
 	/**
 	 * Get all active cookies for this request.
 	 */
-	public Map<String, Cookie> getCookies();
+	Map<String, Cookie> getCookies();
 
 	/**
 	 * Get an active cookie by name.
 	 */
-	public Cookie getCookie(String name);
+	Cookie getCookie(String name);
 
 	/* Request content */
 
 	/**
 	 * The character encoding for this request.
 	 */
-	public Charset getCharacterEncoding();
+	Charset getCharacterEncoding();
 
 	/**
 	 * The request content MIME type.
 	 * 
 	 * @return
 	 */
-	public String getContentType();
+	String getContentType();
 
 	/**
 	 * The length of the request data in bytes.
 	 */
-	public long getContentLength();
+	long getContentLength();
 
 	/**
 	 * Get a raw input stream for reading the request body.
 	 */
-	public InputStream getInputStream();
+	InputStream getInputStream();
 
 	/**
 	 * Get a buffered reader for reading the request body, using default
 	 * character encoding.
 	 */
-	public BufferedReader getReader();
+	BufferedReader getReader();
 
 	/* Request attributes */
 
@@ -158,6 +161,6 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	 * Get a request-specific attribute. Useful for sharing data between
 	 * handlers and filters during a single request.
 	 */
-	public <T> RequestAttribute<T> attr(RequestAttributeKey<T> key);
+	<T> RequestAttribute<T> attr(RequestAttributeKey<T> key);
 
 }

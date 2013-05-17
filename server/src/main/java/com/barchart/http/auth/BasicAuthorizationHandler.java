@@ -39,8 +39,8 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 	// http://tools.ietf.org/html/rfc2617
 
 	@Override
-	public void authenticate(ServerRequest request, ServerResponse response)
-			throws IOException {
+	public void authenticate(final ServerRequest request,
+			final ServerResponse response) throws IOException {
 
 		final String authHeader = request.headers().get("Authorization");
 
@@ -53,8 +53,8 @@ public class BasicAuthorizationHandler implements AuthorizationHandler {
 			try {
 
 				final String[] structure = authHeader.split(" ");
-				final String[] userpass =
-						new String(Base64.decode(structure[1])).split(":");
+				final String[] userpass = new String(
+						Base64.decode(structure[1])).split(":");
 
 				if (!authenticator.authenticate(userpass[0], userpass[1])) {
 					response.headers().set(Names.WWW_AUTHENTICATE,
