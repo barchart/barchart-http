@@ -103,20 +103,84 @@ public class HttpServerConfig {
 	}
 
 	/**
-	 * Add a request handler for the given path.
+	 * <p>
+	 * Add a request handler for the given prefix i.e /session and
+	 * /session/create sent to the same handler
+	 * </p>
+	 * 
+	 * <p>
+	 * Also we can override by shortest matching string i.e
+	 * </p>
+	 * 
+	 * <p>
+	 * 2 handlers defined as requestHandler("/service", serviceHandler); and
+	 * requestHandler("/service/info", infoHandler);
+	 * </p>
+	 * 
+	 * <p>
+	 * A request to "/service/info/10" will go to infoHandler, but a request to
+	 * "/service/something/else" will go to serviceHandler.
+	 * </p>
+	 * 
+	 * <p>
+	 * ServerRequest.getPathInfo() will return the URL path portion that comes
+	 * *after* the matched handler prefix.
+	 * </p>
+	 * 
+	 * <p>
+	 * So, in the case of the examples above, getPathInfo() would return:
+	 * </p>
+	 * 
+	 * <p>
+	 * For /service/info/10: "/10" and for /service/something/else:
+	 * "/something/else"
+	 * </p>
+	 * 
 	 */
-	public HttpServerConfig requestHandler(final String path,
+	public HttpServerConfig requestHandler(final String prefix,
 			final RequestHandler handler) {
-		handlers.put(path, handler);
+		handlers.put(prefix, handler);
 		return this;
 	}
 
 	/**
-	 * Add a request handler factory for the given path.
+	 * <p>
+	 * Add a request handler factory for the given prefix.
+	 * </p>
+	 * 
+	 * <p>
+	 * Also we can override by shortest matching string i.e
+	 * </p>
+	 * 
+	 * <p>
+	 * 2 request handler factory defined as requestHandler("/service",
+	 * serviceHandlerFactory); and requestHandler("/service/info",
+	 * infoHandlerFactory);
+	 * </p>
+	 * 
+	 * <p>
+	 * A request to "/service/info/10" will go to infoHandlerFactory, but a
+	 * request to "/service/something/else" will go to serviceHandlerFactory.
+	 * </p>
+	 * 
+	 * <p>
+	 * ServerRequest.getPathInfo() will return the URL path portion that comes
+	 * *after* the matched handler prefix.
+	 * </p>
+	 * 
+	 * <p>
+	 * So, in the case of the examples above, getPathInfo() would return:
+	 * </p>
+	 * 
+	 * <p>
+	 * For /service/info/10: "/10" and for /service/something/else:
+	 * "/something/else"
+	 * </p>
+	 * 
 	 */
-	public HttpServerConfig requestHandler(final String path,
+	public HttpServerConfig requestHandler(final String prefix,
 			final RequestHandlerFactory factory) {
-		handlers.put(path, factory);
+		handlers.put(prefix, factory);
 		return this;
 	}
 
@@ -214,7 +278,16 @@ public class HttpServerConfig {
 	}
 
 	/**
-	 * Sorts strings by reverse length first, then normal comparison.
+	 * 
+	 * Sorts strings by reverse length first, then normal comparison. For
+	 * example:
+	 * 
+	 * 2 handlers defined as requestHandler("/service", serviceHandler);
+	 * requestHandler("/service/info", infoHandler);
+	 * 
+	 * A request to "/service/info/10" will go to infoHandler, but a request to
+	 * "/service/something/else" will go to serviceHandler.
+	 * 
 	 */
 	private class ReverseLengthComparator implements Comparator<String> {
 
