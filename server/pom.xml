@@ -63,7 +63,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.7</version>
+			<version>[1.6,2)</version>
 		</dependency>
 
 		<dependency>
