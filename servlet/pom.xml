@@ -61,14 +61,6 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.barchart.session</groupId>
-			<artifactId>barchart-session-test</artifactId>
-			<version>[2,3)</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-
 	</dependencies>
 
 </project>
