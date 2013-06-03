@@ -62,7 +62,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>[1.6,2)</version>
+			<version>[1.6,2-SNAPSHOT)</version>
 		</dependency>
 
 		<dependency>
@@ -81,7 +81,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<dependency>
 			<groupId>com.barchart.util</groupId>
 			<artifactId>barchart-util-test</artifactId>
-			<version>[3,4)</version>
+			<version>[3,4-SNAPSHOT)</version>
 			<scope>test</scope>
 		</dependency>
 
