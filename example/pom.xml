@@ -11,14 +11,14 @@
 
 	<groupId>com.barchart.http</groupId>
 	<artifactId>barchart-http-example</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<scm>
 		<url>https://github.com/barchart/barchart-http</url>
 		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
-		<tag>barchart-http-example-1.0.1</tag>
+		<tag>master</tag>
 	</scm>
 
 	<repositories>
