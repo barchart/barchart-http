@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
-import com.barchart.http.util.Base64;
+import com.barchart.util.values.base64.Base64;
 
 /**
  * Implements Basic HTTP authorization handling.
