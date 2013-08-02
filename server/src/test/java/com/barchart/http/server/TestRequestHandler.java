@@ -9,10 +9,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
+
 import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
+@Ignore
 public class TestRequestHandler extends RequestHandlerBase {
 
 	private final ScheduledExecutorService executor = Executors
@@ -57,8 +60,8 @@ public class TestRequestHandler extends RequestHandlerBase {
 
 		if (async) {
 			response.suspend();
-			lastFuture =
-					executor.schedule(task, execTime, TimeUnit.MILLISECONDS);
+			lastFuture = executor.schedule(task, execTime,
+					TimeUnit.MILLISECONDS);
 		} else {
 			task.run();
 		}

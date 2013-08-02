@@ -16,18 +16,17 @@ import com.barchart.http.request.RequestHandlerBase;
 import com.barchart.http.request.ServerRequest;
 import com.barchart.http.request.ServerResponse;
 
-public class TestBenchmark {
+public class RunBenchmark {
 
 	public static void main(final String[] args) {
 
 		final HttpServer server = new HttpServer();
 
-		final HttpServerConfig config =
-				new HttpServerConfig()
-						.requestHandler("", new TestRequestHandler())
-						.address(new InetSocketAddress("localhost", 8080))
-						.parentGroup(new NioEventLoopGroup())
-						.childGroup(new NioEventLoopGroup()).maxConnections(-1);
+		final HttpServerConfig config = new HttpServerConfig()
+				.requestHandler("", new TestRequestHandler())
+				.address(new InetSocketAddress("localhost", 8080))
+				.parentGroup(new NioEventLoopGroup())
+				.childGroup(new NioEventLoopGroup()).maxConnections(-1);
 
 		try {
 			server.configure(config).listen().sync();
