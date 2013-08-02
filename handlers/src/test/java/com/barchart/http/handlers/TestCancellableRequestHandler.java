@@ -25,6 +25,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.barchart.http.request.ServerRequest;
@@ -33,6 +34,7 @@ import com.barchart.http.server.HttpServer;
 import com.barchart.http.server.HttpServerConfig;
 import com.barchart.util.test.concurrent.CallableTest;
 
+@Ignore
 public class TestCancellableRequestHandler {
 
 	private HttpServer server;
