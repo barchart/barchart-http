@@ -43,6 +43,9 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		
 		<module>servlet</module>
 		<module>handlers</module>
+		
+		<module>tester</module>
+		
 		<module>feature</module>
 		<module>example</module>
 		
