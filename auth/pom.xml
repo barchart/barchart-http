@@ -1,6 +1,7 @@
 <!-- Copyright (C) 2011-2013 Barchart, Inc. <http://www.barchart.com /> All 
 	rights reserved. Licensed under the OSI BSD License. http://www.opensource.org/licenses/bsd-license.php -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -11,7 +12,7 @@
 		<relativePath>../archon</relativePath>
 	</parent>
 
-	<artifactId>barchart-http-servlet</artifactId>
+	<artifactId>barchart-http-auth</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
@@ -19,7 +20,7 @@
 <![CDATA[
 ### ${project.artifactId}
 
-A lightweight, high performance, asynchronous HTTP server built on top of Netty 4.
+A lightweight, high performance, asynchronous HTTP client built on top of Netty 4.
 
 Project documentation: https://github.com/barchart/barchart-http/wiki
 ]]>
@@ -35,22 +36,40 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 	<dependencies>
 
 		<dependency>
-			<groupId>com.barchart.http</groupId>
-			<artifactId>barchart-http-server</artifactId>
-			<version>[3-SNAPSHOT,4-SNAPSHOT)</version>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-buffer</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-handler</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-servlet_3.0_spec</artifactId>
-			<version>1.0</version>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>[1.6,2-SNAPSHOT)</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.2.2</version>
-			<scope>test</scope>
+			<groupId>com.barchart.util</groupId>
+			<artifactId>barchart-util-values</artifactId>
+			<version>[2,3-SNAPSHOT)</version>
 		</dependency>
 
 		<dependency>

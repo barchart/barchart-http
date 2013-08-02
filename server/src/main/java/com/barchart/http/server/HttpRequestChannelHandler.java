@@ -12,7 +12,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundMessageHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -33,10 +33,10 @@ import com.barchart.http.request.RequestHandlerMapping;
  */
 @Sharable
 public class HttpRequestChannelHandler extends
-		ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
+		SimpleChannelInboundHandler<FullHttpRequest> {
 
-	public static final AttributeKey<PooledServerResponse> ATTR_RESPONSE =
-			new AttributeKey<PooledServerResponse>("response");
+	public static final AttributeKey<PooledServerResponse> //
+	ATTR_RESPONSE = new AttributeKey<PooledServerResponse>("response");
 
 	private final HttpServerConfig config;
 	private final ServerMessagePool messagePool;
@@ -48,25 +48,28 @@ public class HttpRequestChannelHandler extends
 	}
 
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx,
+	protected void channelRead0(final ChannelHandlerContext ctx,
 			final FullHttpRequest msg) throws Exception {
 
-		// MJS: Here we gather the request handler and also determine if
-		// authentication is taking place and
-		// we issue either a 404 or a 401 challenge if the message doesn't
-		// contain any authorization response
-		final RequestHandlerMapping mapping =
-				config.getRequestMapping(msg.getUri());
+		/**
+		 * // MJS: Here we gather the request handler and also determine if //
+		 * authentication is taking place and // we issue either a 404 or a 401
+		 * challenge if the message doesn't // contain any authorization
+		 * response
+		 */
+		final RequestHandlerMapping mapping = config.getRequestMapping(msg
+				.getUri());
 
 		String relativePath = msg.getUri();
 
-		if (mapping != null)
+		if (mapping != null) {
 			relativePath = relativePath.substring(mapping.path().length());
+		}
 
-		// Create request/response
+		/** Create request/response */
 		final PooledServerRequest request = messagePool.getRequest();
 
-		// Handle 503 - sanity check, should be caught in acceptor
+		/** Handle 503 - sanity check, should be caught in acceptor */
 		if (request == null) {
 			sendServerError(ctx, new ServerTooBusyException(
 					"Maximum concurrent connections reached"));
@@ -75,16 +78,16 @@ public class HttpRequestChannelHandler extends
 
 		request.init(ctx.channel(), msg, relativePath);
 
-		final RequestHandler handler =
-				mapping == null ? null : mapping.handler(request);
+		final RequestHandler handler = mapping == null ? null : mapping
+				.handler(request);
 
 		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, this, handler, request, config.logger());
 
 		// MJS: Dispatch a 404 in case we don't find the handler
-		if (mapping == null)
+		if (mapping == null) {
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
-
+		}
 		// MJS: Should we authenticate?
 		else if (config.hasAuthorizationHandlers()) {
 
@@ -95,13 +98,12 @@ public class HttpRequestChannelHandler extends
 			// MJS: No authorization header or one not matched by an existing
 			// handler? no go
 			if (authHeader == null
-					|| (authorization =
-							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null)
+					|| (authorization = config.getAuthorizationHandler(msg
+							.headers().get("Authorization"))) == null) {
 				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
-
-			else
+			} else {
 				authorization.authenticate(request, response);
+			}
 		}
 
 		// Store in ChannelHandlerContext for future reference
@@ -111,12 +113,13 @@ public class HttpRequestChannelHandler extends
 
 			// MJS: Dispatch an error if not found or authorized
 			if (response.getStatus() == HttpResponseStatus.UNAUTHORIZED
-					|| response.getStatus() == HttpResponseStatus.NOT_FOUND)
+					|| response.getStatus() == HttpResponseStatus.NOT_FOUND) {
 				config.errorHandler().onError(request, response, null);
-
+			}
 			// Process request
-			else
+			else {
 				handler.onRequest(request, response);
+			}
 
 		} catch (final Throwable t) {
 
@@ -156,9 +159,8 @@ public class HttpRequestChannelHandler extends
 					+ cause.getStatus().reasonPhrase() + " - " + cause
 					.getMessage()).getBytes());
 
-			final FullHttpResponse response =
-					new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-							cause.getStatus());
+			final FullHttpResponse response = new DefaultFullHttpResponse(
+					HttpVersion.HTTP_1_1, cause.getStatus());
 
 			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 					content.readableBytes());
@@ -255,8 +257,8 @@ public class HttpRequestChannelHandler extends
 	 */
 	public void freeHandlers(final ChannelHandlerContext ctx) {
 
-		final PooledServerResponse response =
-				ctx.attr(ATTR_RESPONSE).getAndRemove();
+		final PooledServerResponse response = ctx.attr(ATTR_RESPONSE)
+				.getAndRemove();
 
 		if (response != null) {
 

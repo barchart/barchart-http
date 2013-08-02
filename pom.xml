@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.barchart.base</groupId>
 		<artifactId>barchart-archon</artifactId>
-		<version>2.5.10</version>
+		<version>2.5.12</version>
 		<relativePath/>
 	</parent>
 
@@ -37,6 +37,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 	<modules>
 		<module>archon</module>
 		
+		<module>auth</module>
 		<module>client</module>
 		<module>server</module>
 		
@@ -44,6 +45,9 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<module>handlers</module>
 		<module>feature</module>
 		<module>example</module>
+		
+		<module>vertx-core</module>
+		
 	</modules>
 
 	<build>

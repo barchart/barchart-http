@@ -11,6 +11,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -18,7 +19,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelStateHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -33,6 +33,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
  * High performance HTTP server.
@@ -44,13 +45,16 @@ public class HttpServer {
 	private HttpRequestChannelHandler channelHandler;
 	private ConnectionTracker clientTracker;
 
-	private final ChannelGroup channelGroup = new DefaultChannelGroup();
+	private ChannelGroup channelGroup;
 
 	public HttpServer configure(final HttpServerConfig config_) {
 
 		config = config_;
 		channelHandler = new HttpRequestChannelHandler(config);
 		clientTracker = new ConnectionTracker(config.maxConnections());
+
+		/** FIXME think again */
+		channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
 		return this;
 
@@ -142,7 +146,8 @@ public class HttpServer {
 
 			final ChannelPipeline pipeline = ch.pipeline();
 
-			pipeline.addLast(new HttpResponseEncoder(), //
+			pipeline.addLast(//
+					new HttpResponseEncoder(), //
 					new ChunkedWriteHandler(), //
 					clientTracker, //
 					new HttpRequestDecoder(), //
@@ -155,7 +160,7 @@ public class HttpServer {
 	}
 
 	@Sharable
-	private class ConnectionTracker extends ChannelStateHandlerAdapter {
+	private class ConnectionTracker extends ChannelDuplexHandler {
 
 		private int maxConnections = -1;
 
@@ -173,9 +178,9 @@ public class HttpServer {
 				content.writeBytes("503 Service Unavailable - Server Too Busy"
 						.getBytes());
 
-				final FullHttpResponse response =
-						new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-								HttpResponseStatus.SERVICE_UNAVAILABLE);
+				final FullHttpResponse response = new DefaultFullHttpResponse(
+						HttpVersion.HTTP_1_1,
+						HttpResponseStatus.SERVICE_UNAVAILABLE);
 
 				response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 						content.readableBytes());
@@ -200,12 +205,6 @@ public class HttpServer {
 			channelGroup.remove(context.channel());
 			context.fireChannelInactive();
 
-		}
-
-		@Override
-		public void inboundBufferUpdated(final ChannelHandlerContext ctx)
-				throws Exception {
-			ctx.fireInboundBufferUpdated();
 		}
 
 	}
