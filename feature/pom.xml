@@ -52,7 +52,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 
 		<dependency>
 			<groupId>com.barchart.http</groupId>
-			<artifactId>barchart-http-handlers</artifactId>
+			<artifactId>barchart-http-handler</artifactId>
 			<version>[3-SNAPSHOT,4-SNAPSHOT)</version>
 		</dependency>
 
