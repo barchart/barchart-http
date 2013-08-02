@@ -11,7 +11,7 @@
 		<relativePath>../archon</relativePath>
 	</parent>
 
-	<artifactId>barchart-http-handlers</artifactId>
+	<artifactId>barchart-http-handler</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 

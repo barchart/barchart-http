@@ -42,7 +42,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<module>server</module>
 		
 		<module>servlet</module>
-		<module>handlers</module>
+		<module>handler</module>
 		
 		<module>tester</module>
 		
