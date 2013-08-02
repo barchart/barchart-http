@@ -27,6 +27,8 @@
 
 			<arg value="-DskipTests" />
 
+			<arg value="-e" />
+
 		</exec>
 
 	</target>
