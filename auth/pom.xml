@@ -13,7 +13,7 @@
 	</parent>
 
 	<artifactId>barchart-http-auth</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<description>
