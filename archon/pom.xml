@@ -37,7 +37,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 
 		<projectJavaVersion>1.7</projectJavaVersion>
 
-		<projectNettyVersion>[4.0.4.Final,4.1.0.CR)</projectNettyVersion>
+		<projectNettyVersion>[4.0.4.Final,4.1.0.Alpha1-SNAPSHOT)</projectNettyVersion>
 
 	</properties>
 
