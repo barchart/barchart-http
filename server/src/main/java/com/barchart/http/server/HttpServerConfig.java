@@ -39,7 +39,7 @@ public class HttpServerConfig {
 
 	private SocketAddress address;
 	private int maxConnections = -1;
-	private int maxRequestSize = 65536;
+	private int maxRequestSize = 1024 * 1024;
 	private ErrorHandler errorHandler = new DefaultErrorHandler();
 	private RequestLogger requestLogger = new NullRequestLogger();
 	private EventLoopGroup parentGroup = new NioEventLoopGroup();
@@ -63,7 +63,7 @@ public class HttpServerConfig {
 
 	/**
 	 * Set the maximum request size in bytes (file uploads, etc). Defaults to
-	 * 65536.
+	 * 1048576 (1MB).
 	 */
 	public HttpServerConfig maxRequestSize(final int max) {
 		maxRequestSize = max;
