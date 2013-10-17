@@ -83,15 +83,15 @@ public class PooledServerRequest implements ServerRequest {
 
 		// MJS: Once we have the request we can also see if we have an
 		// authentication response attached to it
-		String authHeader = nettyRequest.headers().get("Authorization");
+		final String authHeader = nettyRequest.headers().get("Authorization");
 
 		if (authHeader != null) {
 
-			if (authHeader.startsWith("Basic"))
+			if (authHeader.startsWith("Basic")) {
 				authenticationMethod = "Basic";
-
-			else if (authHeader.startsWith("Digest"))
+			} else if (authHeader.startsWith("Digest")) {
 				authenticationMethod = "Digest";
+			}
 		}
 
 		baseUri = relativeUri_;
@@ -195,8 +195,17 @@ public class PooledServerRequest implements ServerRequest {
 	public Map<String, List<String>> getParameters() {
 
 		if (queryStringDecoded == null && queryString != null) {
-			queryStringDecoded =
-					new QueryStringDecoder(queryString, false).parameters();
+
+			if (headers().get(HttpHeaders.Names.CONTENT_TYPE).equals(
+					HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+				queryStringDecoded =
+						new QueryStringDecoder(nettyRequest.content().toString(
+								getCharacterEncoding()), false).parameters();
+			} else {
+				queryStringDecoded =
+						new QueryStringDecoder(queryString, false).parameters();
+			}
+
 		}
 
 		return queryStringDecoded;
