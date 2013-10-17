@@ -194,16 +194,18 @@ public class PooledServerRequest implements ServerRequest {
 	@Override
 	public Map<String, List<String>> getParameters() {
 
-		if (queryStringDecoded == null && queryString != null) {
+		if (queryStringDecoded == null) {
 
-			if (headers().get(HttpHeaders.Names.CONTENT_TYPE).equals(
-					HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+			if (HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED
+					.equals(headers().get(HttpHeaders.Names.CONTENT_TYPE))) {
 				queryStringDecoded =
 						new QueryStringDecoder(nettyRequest.content().toString(
 								getCharacterEncoding()), false).parameters();
-			} else {
+			} else if (queryString != null) {
 				queryStringDecoded =
 						new QueryStringDecoder(queryString, false).parameters();
+			} else {
+				queryStringDecoded = new HashMap<String, List<String>>();
 			}
 
 		}

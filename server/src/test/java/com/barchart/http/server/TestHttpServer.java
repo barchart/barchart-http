@@ -32,8 +32,10 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -161,6 +163,28 @@ public class TestHttpServer {
 							.getEntity().getContent())).readLine().trim();
 
 			assertEquals("basic", content);
+		}
+	}
+
+	@Test
+	public void testPostRequest() throws Exception {
+
+		for (int i = 0; i < 100; i++) {
+			final HttpPost post =
+					new HttpPost("http://localhost:" + port + "/basic");
+			post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			post.setEntity(new StringEntity("id=1&id=2"));
+			final HttpResponse response = client.execute(post);
+			final String content =
+					new BufferedReader(new InputStreamReader(response
+							.getEntity().getContent())).readLine().trim();
+
+			assertEquals("basic", content);
+
+			assertEquals(1, basic.parameters.size());
+			assertEquals(2, basic.parameters.get("id").size());
+			assertEquals("1", basic.parameters.get("id").get(0));
+			assertEquals("2", basic.parameters.get("id").get(1));
 		}
 	}
 
@@ -531,8 +555,9 @@ public class TestHttpServer {
 
 			// MJS: In a real server a DB containing the hashes would be used to
 			// shield the real passwords. Only brute force could reveal those
-			if (username.equals("aaa"))
+			if (username.equals("aaa")) {
 				return DigestUtils.md5Hex(username + ":barchart.com:" + "bbb");
+			}
 
 			return null;
 		}
