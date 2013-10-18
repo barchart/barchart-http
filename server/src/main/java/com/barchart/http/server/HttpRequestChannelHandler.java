@@ -60,8 +60,9 @@ public class HttpRequestChannelHandler extends
 
 		String relativePath = msg.getUri();
 
-		if (mapping != null)
+		if (mapping != null) {
 			relativePath = relativePath.substring(mapping.path().length());
+		}
 
 		// Create request/response
 		final PooledServerRequest request = messagePool.getRequest();
@@ -82,11 +83,9 @@ public class HttpRequestChannelHandler extends
 		response.init(ctx, this, handler, request, config.logger());
 
 		// MJS: Dispatch a 404 in case we don't find the handler
-		if (mapping == null)
+		if (mapping == null) {
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
-
-		// MJS: Should we authenticate?
-		else if (config.hasAuthorizationHandlers()) {
+		} else if (config.hasAuthorizationHandlers()) {
 
 			// MJS: Do we have authorization on this server?
 			AuthorizationHandler authorization = null;
@@ -97,11 +96,11 @@ public class HttpRequestChannelHandler extends
 			if (authHeader == null
 					|| (authorization =
 							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null)
+									"Authorization"))) == null) {
 				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
-
-			else
+			} else {
 				authorization.authenticate(request, response);
+			}
 		}
 
 		// Store in ChannelHandlerContext for future reference
@@ -111,12 +110,11 @@ public class HttpRequestChannelHandler extends
 
 			// MJS: Dispatch an error if not found or authorized
 			if (response.getStatus() == HttpResponseStatus.UNAUTHORIZED
-					|| response.getStatus() == HttpResponseStatus.NOT_FOUND)
+					|| response.getStatus() == HttpResponseStatus.NOT_FOUND) {
 				config.errorHandler().onError(request, response, null);
-
-			// Process request
-			else
+			} else {
 				handler.onRequest(request, response);
+			}
 
 		} catch (final Throwable t) {
 
@@ -133,6 +131,12 @@ public class HttpRequestChannelHandler extends
 			}
 
 			config.logger().error(request, response, t);
+
+			// Force request to end on exception, async handlers cannot allow
+			// unchecked exceptions and still expect to return data
+			if (!response.isFinished()) {
+				response.finish();
+			}
 
 		} finally {
 
