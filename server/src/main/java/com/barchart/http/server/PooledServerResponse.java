@@ -198,7 +198,9 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 	@Override
 	public void write(final String data) throws IOException {
-		write(data.getBytes());
+		if (data != null) {
+			write(data.getBytes());
+		}
 	}
 
 	@Override
