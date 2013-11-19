@@ -7,6 +7,7 @@
  */
 package com.barchart.http.request;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -131,6 +132,13 @@ public interface ServerRequest extends ServerMessage, HttpRequest {
 	 * The character encoding for this request.
 	 */
 	Charset getCharacterEncoding();
+
+	/**
+	 * The request content buffer.
+	 * 
+	 * @return
+	 */
+	ByteBuf getContent();
 
 	/**
 	 * The request content MIME type.

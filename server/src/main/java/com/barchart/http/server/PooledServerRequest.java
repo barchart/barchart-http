@@ -328,6 +328,7 @@ public class PooledServerRequest implements ServerRequest {
 		return this;
 	}
 
+	@Override
 	public ByteBuf getContent() {
 		return nettyRequest.content();
 	}
