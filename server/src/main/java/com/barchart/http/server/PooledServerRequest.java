@@ -36,9 +36,6 @@ import com.barchart.http.request.ServerRequest;
 
 /**
  * Implements a server request from a low garbage collection use pool
- * 
- * author: andrei, jeremy
- * 
  */
 public class PooledServerRequest implements ServerRequest {
 
@@ -58,21 +55,9 @@ public class PooledServerRequest implements ServerRequest {
 
 	private String remoteUser = null;
 
-	// MJS: Added if we encounter an Authorization header in the request
-	private String authenticationMethod = null;
-
-	/**
-	 * @return the authenticationMethod
-	 */
-	public String getAuthenticationMethod() {
-		return authenticationMethod;
-	}
-
 	public PooledServerRequest() {
 	}
 
-	// MJS: Here we determine if we also need authentication if we have attached
-	// authentication handlers
 	void init(final Channel channel_, final FullHttpRequest nettyRequest_,
 			final String relativeUri_) {
 
@@ -80,19 +65,7 @@ public class PooledServerRequest implements ServerRequest {
 		remote = (InetSocketAddress) channel_.remoteAddress();
 
 		nettyRequest = nettyRequest_;
-
-		// MJS: Once we have the request we can also see if we have an
-		// authentication response attached to it
-		final String authHeader = nettyRequest.headers().get("Authorization");
-
-		if (authHeader != null) {
-
-			if (authHeader.startsWith("Basic")) {
-				authenticationMethod = "Basic";
-			} else if (authHeader.startsWith("Digest")) {
-				authenticationMethod = "Digest";
-			}
-		}
+		nettyRequest.retain();
 
 		baseUri = relativeUri_;
 
@@ -112,6 +85,12 @@ public class PooledServerRequest implements ServerRequest {
 		attributes = null;
 
 		remoteUser = null;
+	}
+
+	void release() {
+		if (nettyRequest != null) {
+			nettyRequest.release();
+		}
 	}
 
 	@Override

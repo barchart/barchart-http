@@ -274,6 +274,7 @@ public class HttpRequestChannelHandler extends
 
 			} finally {
 
+				response.request().release();
 				messagePool.makeAvailable(response.request());
 
 				response.close();
