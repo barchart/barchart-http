@@ -13,10 +13,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.net.SocketAddress;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import com.barchart.http.auth.AuthorizationHandler;
 import com.barchart.http.error.DefaultErrorHandler;
 import com.barchart.http.error.ErrorHandler;
 import com.barchart.http.logging.NullRequestLogger;
@@ -29,9 +27,6 @@ import com.barchart.http.request.RequestHandlerMapping;
  * Configuration values for initializing HttpServer.
  */
 public class HttpServerConfig {
-
-	private final Map<String, AuthorizationHandler> authorizationHandlers =
-			new ConcurrentHashMap<String, AuthorizationHandler>();
 
 	private final Map<String, Object> handlers =
 			new ConcurrentSkipListMap<String, Object>(
@@ -185,16 +180,6 @@ public class HttpServerConfig {
 	}
 
 	/**
-	 * Add an authorization handler.
-	 */
-	public HttpServerConfig authorizationHandler(
-			final AuthorizationHandler authHandler) {
-		authorizationHandlers.put(authHandler.getMethod().toUpperCase(),
-				authHandler);
-		return this;
-	}
-
-	/**
 	 * Get the address this server binds to.
 	 */
 	public SocketAddress address() {
@@ -261,20 +246,6 @@ public class HttpServerConfig {
 
 	public Object removeRequestHandler(final String path) {
 		return handlers.remove(path);
-	}
-
-	/**
-	 * Indicates if we need to authenticate upon requests
-	 */
-	public boolean hasAuthorizationHandlers() {
-		return !authorizationHandlers.isEmpty();
-	}
-
-	/**
-	 * Get the authorization handler for the specified header.
-	 */
-	public AuthorizationHandler getAuthorizationHandler(final String header) {
-		return authorizationHandlers.get(header.split(" ")[0].toUpperCase());
 	}
 
 	/**

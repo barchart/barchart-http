@@ -12,7 +12,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundMessageHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -21,7 +21,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
 
-import com.barchart.http.auth.AuthorizationHandler;
 import com.barchart.http.error.ServerException;
 import com.barchart.http.error.ServerTooBusyException;
 import com.barchart.http.request.RequestHandler;
@@ -33,10 +32,10 @@ import com.barchart.http.request.RequestHandlerMapping;
  */
 @Sharable
 public class HttpRequestChannelHandler extends
-		ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
+		SimpleChannelInboundHandler<FullHttpRequest> {
 
 	public static final AttributeKey<PooledServerResponse> ATTR_RESPONSE =
-			new AttributeKey<PooledServerResponse>("response");
+			AttributeKey.<PooledServerResponse> valueOf("response");
 
 	private final HttpServerConfig config;
 	private final ServerMessagePool messagePool;
@@ -48,13 +47,9 @@ public class HttpRequestChannelHandler extends
 	}
 
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx,
+	public void channelRead0(final ChannelHandlerContext ctx,
 			final FullHttpRequest msg) throws Exception {
 
-		// MJS: Here we gather the request handler and also determine if
-		// authentication is taking place and
-		// we issue either a 404 or a 401 challenge if the message doesn't
-		// contain any authorization response
 		final RequestHandlerMapping mapping =
 				config.getRequestMapping(msg.getUri());
 
@@ -82,25 +77,9 @@ public class HttpRequestChannelHandler extends
 		final PooledServerResponse response = messagePool.getResponse();
 		response.init(ctx, this, handler, request, config.logger());
 
-		// MJS: Dispatch a 404 in case we don't find the handler
 		if (mapping == null) {
+			// No handler found, 404
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
-		} else if (config.hasAuthorizationHandlers()) {
-
-			// MJS: Do we have authorization on this server?
-			AuthorizationHandler authorization = null;
-			final String authHeader = msg.headers().get("Authorization");
-
-			// MJS: No authorization header or one not matched by an existing
-			// handler? no go
-			if (authHeader == null
-					|| (authorization =
-							config.getAuthorizationHandler(msg.headers().get(
-									"Authorization"))) == null) {
-				response.setStatus(HttpResponseStatus.UNAUTHORIZED);
-			} else {
-				authorization.authenticate(request, response);
-			}
 		}
 
 		// Store in ChannelHandlerContext for future reference
@@ -169,7 +148,8 @@ public class HttpRequestChannelHandler extends
 
 			response.content().writeBytes(content);
 
-			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(response)
+					.addListener(ChannelFutureListener.CLOSE);
 
 		}
 

@@ -5,15 +5,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.barchart.http</groupId>
-		<artifactId>barchart-http-archon</artifactId>
-		<version>2.0.1</version>
-		<relativePath>../archon</relativePath>
+		<groupId>com.barchart.base</groupId>
+		<artifactId>barchart-archon</artifactId>
+		<version>2.5.19</version>
 	</parent>
 
 	<groupId>com.barchart.http</groupId>
 	<artifactId>barchart-http-handlers</artifactId>
-	<version>2.0.4-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<description>
@@ -25,6 +24,10 @@ A lightweight, high performance, asynchronous HTTP server built on top of Netty 
 Project documentation: https://github.com/barchart/barchart-http/wiki
 ]]>
 	</description>
+
+	<properties>
+		<projectNettyVersion>4.0.14.Final</projectNettyVersion>
+	</properties>
 
 	<scm>
 		<url>https://github.com/barchart/barchart-http</url>
@@ -38,20 +41,24 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<dependency>
 			<groupId>com.barchart.http</groupId>
 			<artifactId>barchart-http-server</artifactId>
-			<version>[2-SNAPSHOT,3-SNAPSHOT)</version>
+			<version>[4-SNAPSHOT,5-SNAPSHOT)</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.2.2</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.barchart.wrap</groupId>
+			<artifactId>barchart-wrap-apache-http-all</artifactId>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.barchart.util</groupId>
 			<artifactId>barchart-util-test</artifactId>
-			<version>[3,4-SNAPSHOT)</version>
 			<scope>test</scope>
 		</dependency>
 

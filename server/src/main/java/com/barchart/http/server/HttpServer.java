@@ -15,10 +15,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelStateHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -33,6 +33,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
  * High performance HTTP server.
@@ -44,7 +45,8 @@ public class HttpServer {
 	private HttpRequestChannelHandler channelHandler;
 	private ConnectionTracker clientTracker;
 
-	private final ChannelGroup channelGroup = new DefaultChannelGroup();
+	private final ChannelGroup channelGroup = new DefaultChannelGroup(
+			GlobalEventExecutor.INSTANCE);
 
 	public HttpServer configure(final HttpServerConfig config_) {
 
@@ -155,7 +157,7 @@ public class HttpServer {
 	}
 
 	@Sharable
-	private class ConnectionTracker extends ChannelStateHandlerAdapter {
+	private class ConnectionTracker extends ChannelInboundHandlerAdapter {
 
 		private int maxConnections = -1;
 
@@ -182,8 +184,8 @@ public class HttpServer {
 
 				response.content().writeBytes(content);
 
-				context.write(response)
-						.addListener(ChannelFutureListener.CLOSE);
+				context.writeAndFlush(response).addListener(
+						ChannelFutureListener.CLOSE);
 
 				return;
 
@@ -200,12 +202,6 @@ public class HttpServer {
 			channelGroup.remove(context.channel());
 			context.fireChannelInactive();
 
-		}
-
-		@Override
-		public void inboundBufferUpdated(final ChannelHandlerContext ctx)
-				throws Exception {
-			ctx.fireInboundBufferUpdated();
 		}
 
 	}

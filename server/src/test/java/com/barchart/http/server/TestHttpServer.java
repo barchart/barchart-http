@@ -16,53 +16,32 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.auth.DigestScheme;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import com.barchart.http.auth.Authenticator;
-import com.barchart.http.auth.BasicAuthorizationHandler;
-import com.barchart.http.auth.DigestAuthorizationHandler;
-import com.barchart.util.test.junit.MultiThreadedRunner;
-
-// MJS: We run it in parallel to stress the server more and also to take advantage of multiple cores for speed
-@RunWith(MultiThreadedRunner.class)
 public class TestHttpServer {
 
 	private HttpServer server;
 	private HttpClient client;
 
-	// MJS: We need separate ports since we run in parallel
 	private int port;
 
 	private TestRequestHandler basic;
@@ -72,24 +51,8 @@ public class TestHttpServer {
 	private TestRequestHandler error;
 	private TestRequestHandler channelError;
 
-	// MJS: To test synctatic precedence for handler referencing
 	private TestRequestHandler serviceHandler;
 	private TestRequestHandler infoHandler;
-
-	private TestAuthenticator testAuthenticator;
-
-	// MJS: Looks like for Jenkins we need to resort to our own random ports as
-	// final ServerSocket s = new ServerSocket(0);.. doesn't seem to work
-	static private AtomicInteger ports;
-
-	@BeforeClass
-	static public void beforeClass() throws Exception {
-		ports = new AtomicInteger(50000);
-	}
-
-	@AfterClass
-	static public void afterClass() throws Exception {
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -108,34 +71,26 @@ public class TestHttpServer {
 				new TestRequestHandler("channel-error", false, 0, 0, false,
 						true);
 
-		// MJS: To test synctatic precedence for handler referencing
 		infoHandler = new TestRequestHandler("info", false, 0, 0, false, false);
 		serviceHandler =
 				new TestRequestHandler("service", false, 0, 0, false, false);
 
-		port = ports.getAndIncrement();
-		testAuthenticator = new TestAuthenticator();
+		final ServerSocket s = new ServerSocket(0);
+		port = s.getLocalPort();
+		s.close();
 
 		final HttpServerConfig config =
-				new HttpServerConfig()
-						.requestHandler("/basic", basic)
+				new HttpServerConfig().requestHandler("/basic", basic)
 						.address(new InetSocketAddress("localhost", port))
 						.parentGroup(new NioEventLoopGroup(1))
 						.childGroup(new NioEventLoopGroup(1))
-
-						// MJS: Request handlers are attached to resources
-
 						.requestHandler("/async", async)
 						.requestHandler("/async-delayed", asyncDelayed)
 						.requestHandler("/client-disconnect", clientDisconnect)
 						.requestHandler("/channel-error", channelError)
 						.requestHandler("/error", error)
-
-						// MJS: To test synctatic precedence for handler
-						// referencing
 						.requestHandler("/service/info", infoHandler)
 						.requestHandler("/service", serviceHandler)
-
 						.maxConnections(1);
 
 		server.configure(config).listen().sync();
@@ -185,139 +140,6 @@ public class TestHttpServer {
 			assertEquals(2, basic.parameters.get("id").size());
 			assertEquals("1", basic.parameters.get("id").get(0));
 			assertEquals("2", basic.parameters.get("id").get(1));
-		}
-	}
-
-	// MJS: We test basic authentication by encoding the user:password in
-	// plaintext (least secure)
-	@Test
-	public void testBasicAuthorization() throws Exception {
-
-		// MJS: We add a BASIC authentication requirement
-		server.config().authorizationHandler(
-				new BasicAuthorizationHandler(testAuthenticator));
-
-		// MJS: Right login/password
-		for (int i = 0; i < 10; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
-
-			// MJS: We stick the wrong authentication in the header
-			get.addHeader(BasicScheme.authenticate(
-					new UsernamePasswordCredentials("aaa", "bbb"), "UTF-8",
-					false));
-
-			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
-			assertEquals("basic", content);
-			assertEquals(202, response.getStatusLine().getStatusCode());
-		}
-
-		// MJS: Wrong login/password so reject
-		{
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
-
-			// MJS: We stick the wrong authentication in the header
-			get.addHeader(BasicScheme.authenticate(
-					new UsernamePasswordCredentials("aaa", "wrongpassword"),
-					"UTF-8", false));
-
-			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine();
-			assertEquals(401, response.getStatusLine().getStatusCode());
-		}
-
-		// MJS: No authentication so automatic reject - We also loop around to
-		// see if there are any leaks connected to the reject issue
-		for (int i = 0; i < 10; i++) {
-			final HttpGet get =
-					new HttpGet("http://localhost:" + port + "/basic");
-
-			// MJS: We stick the wrong authentication in the header
-			get.addHeader(BasicScheme.authenticate(
-					new UsernamePasswordCredentials("aaa", "wrongpassword"),
-					"UTF-8", false));
-
-			final HttpResponse response = client.execute(get);
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine();
-			assertEquals(401, response.getStatusLine().getStatusCode());
-		}
-	}
-
-	// MJS: Here we test the Digest authentication scheme
-	@Test
-	public void testDigestAuthentication() throws Exception {
-
-		// MJS: We add a DIGEST authentication requirement
-		server.config().authorizationHandler(
-				new DigestAuthorizationHandler(testAuthenticator));
-
-		final HttpHost targetHost = new HttpHost("localhost", port, "http");
-		final DefaultHttpClient client = new DefaultHttpClient();
-
-		// Create AuthCache instance
-		final AuthCache authCache = new BasicAuthCache();
-
-		// Generate DIGEST scheme object, initialize it and add it to the
-		// local auth cache
-		final DigestScheme digestAuth = new DigestScheme();
-
-		// Suppose we already know the realm name
-		digestAuth.overrideParamter("realm", "barchart.com");
-
-		// Suppose we already know the expected nonce value
-		digestAuth.overrideParamter("nonce", "whatever");
-
-		authCache.put(targetHost, digestAuth);
-
-		// Add AuthCache to the execution context
-		final BasicHttpContext localcontext = new BasicHttpContext();
-		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-
-		final HttpGet httpget =
-				new HttpGet("http://localhost:" + port + "/basic");
-
-		// MJS: Below is how a Digest request is setup and made, more elaborate
-		// compared to a Basic one but the security is way better
-		{
-			final String userName = "aaa";
-			final String password = "bbb";
-
-			client.getCredentialsProvider().setCredentials(
-					new AuthScope("localhost", port),
-					new UsernamePasswordCredentials(userName, password));
-
-			final HttpResponse response =
-					client.execute(targetHost, httpget, localcontext);
-
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
-			assertEquals(202, response.getStatusLine().getStatusCode());
-			assertEquals("basic", content);
-		}
-		{
-			final String userName = "aaa";
-			final String password = "badpassword";
-
-			client.getCredentialsProvider().setCredentials(
-					new AuthScope("localhost", port),
-					new UsernamePasswordCredentials(userName, password));
-
-			final HttpResponse response =
-					client.execute(targetHost, httpget, localcontext);
-
-			final String content =
-					new BufferedReader(new InputStreamReader(response
-							.getEntity().getContent())).readLine().trim();
-			assertEquals(401, response.getStatusLine().getStatusCode());
 		}
 	}
 
@@ -411,8 +233,6 @@ public class TestHttpServer {
 	@Test
 	public void testPatternRequests() throws Exception {
 
-		// MJS: how we select handlers based on syntactic priority given to
-		// shortest matches is critical and was missing
 		{
 			final HttpGet get =
 					new HttpGet("http://localhost:" + port + "/service/info/10");
@@ -542,25 +362,4 @@ public class TestHttpServer {
 		}
 	}
 
-	// MJS: Authenticator we use for BASIC and DIGEST testing
-	private class TestAuthenticator implements Authenticator {
-
-		@Override
-		public boolean authenticate(final String username, final String password) {
-			return username.equals("aaa") && password.equals("bbb");
-		}
-
-		@Override
-		public String getData(final String username) {
-
-			// MJS: In a real server a DB containing the hashes would be used to
-			// shield the real passwords. Only brute force could reveal those
-			if (username.equals("aaa")) {
-				return DigestUtils.md5Hex(username + ":barchart.com:" + "bbb");
-			}
-
-			return null;
-		}
-
-	}
 }

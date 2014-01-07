@@ -35,15 +35,8 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 	</scm>
 
 	<modules>
-		<module>archon</module>
-		
-		<module>client</module>
 		<module>server</module>
-		
-		<module>servlet</module>
 		<module>handlers</module>
-		<module>feature</module>
-		<module>example</module>
 	</modules>
 
 	<build>

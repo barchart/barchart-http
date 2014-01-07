@@ -271,7 +271,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 
 		started = true;
 
-		return context.write(this);
+		return context.writeAndFlush(this);
 
 	}
 
@@ -293,7 +293,8 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 					startResponse();
 				}
 
-				writeFuture = context.write(LastHttpContent.EMPTY_LAST_CONTENT);
+				writeFuture =
+						context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
 				// MJS: TBD close the channel here
 				// context.channel().close();
@@ -396,7 +397,7 @@ public class PooledServerResponse extends DefaultFullHttpResponse implements
 			}
 
 			final HttpContent chunk = new DefaultHttpContent(content);
-			context.write(chunk);
+			context.writeAndFlush(chunk);
 		}
 
 	}
