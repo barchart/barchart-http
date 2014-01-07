@@ -12,7 +12,7 @@ package com.barchart.http.request;
  */
 public class RequestAttributeKey<T> {
 
-	private final String name;
+	protected final String name;
 
 	public RequestAttributeKey(final String name_) {
 		name = name_;
