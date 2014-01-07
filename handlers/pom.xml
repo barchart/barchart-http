@@ -12,7 +12,7 @@
 
 	<groupId>com.barchart.http</groupId>
 	<artifactId>barchart-http-handlers</artifactId>
-	<version>4.0.0</version>
+	<version>4.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<description>
@@ -33,7 +33,7 @@ Project documentation: https://github.com/barchart/barchart-http/wiki
 		<url>https://github.com/barchart/barchart-http</url>
 		<connection>scm:git:git://github.com/barchart/barchart-http.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-http.git</developerConnection>
-		<tag>barchart-http-handlers-4.0.0</tag>
+		<tag>master</tag>
 	</scm>
 
 	<dependencies>
